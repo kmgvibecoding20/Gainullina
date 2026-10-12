@@ -1,0 +1,1296 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[Название завода] — Столовые</title>
+<link rel="icon" id="favicon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<style>
+:root{
+  --bg:#F7F6F2;--card:#FFFFFF;--primary:#7A93AC;--primary-h:#637C95;--primary-strong:#56708A;
+  --sage:#A8BFA3;--powder:#D9B8A8;--tag-std:#DCE4EC;--tag-dia:#DAD4EA;--tag-pp:#D4E8DA;
+  --text:#2E3338;--muted:#6B7178;--line:#E3E1DA;--ok:#B9D8C2;--err:#E3B5AE;--soft:#EEF1F4;
+  --r-s:8px;--r-m:12px;--r-l:16px;--shadow:0 1px 3px rgba(46,51,56,.06);--maxw:1240px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:96px}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+.num,.price,.kbju b,td.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:var(--primary-strong)}
+:focus-visible{outline:2px solid var(--primary-strong);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Header */
+.hdr{position:sticky;top:0;z-index:900;background:rgba(247,246,242,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hdr-in{display:flex;align-items:center;gap:20px;min-height:68px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;flex-shrink:0}
+.brand-txt b{display:block;font-size:15px;font-weight:600;line-height:1.2}
+.brand-txt span{display:block;font-size:13px;color:var(--muted);line-height:1.3}
+.nav{display:flex;gap:2px}
+.nav a{padding:8px 12px;border-radius:var(--r-s);text-decoration:none;color:var(--muted);font-size:15px;font-weight:500;white-space:nowrap}
+.nav a:hover{color:var(--text);background:var(--soft)}
+.hdr-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.lang{display:flex;border:1px solid var(--line);border-radius:var(--r-s);overflow:hidden;background:#fff}
+.lang button{border:0;background:none;padding:0 11px;font-size:13px;font-weight:600;color:var(--muted);min-height:42px;min-width:42px}
+.lang button[aria-pressed="true"]{background:var(--tag-std);color:var(--text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:var(--r-s);border:1px solid transparent;font-weight:600;font-size:15px;text-decoration:none;transition:background .15s,border-color .15s;white-space:nowrap}
+.btn-primary{background:var(--primary-strong);color:#fff}
+.btn-primary:hover{background:#4A6279}
+.btn-ghost{background:#fff;border-color:var(--line);color:var(--text)}
+.btn-ghost:hover{border-color:var(--primary)}
+.btn-block{width:100%}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.icon-btn{position:relative;width:44px;height:44px;border-radius:var(--r-s);border:1px solid var(--line);background:#fff;display:grid;place-items:center;flex-shrink:0}
+.icon-btn:hover{border-color:var(--primary)}
+.icon-btn svg{width:20px;height:20px}
+.badge-count[hidden]{display:none}
+.badge-count{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--powder);font-size:12px;font-weight:700;display:grid;place-items:center}
+.user-chip{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;line-height:1.25;padding:4px 12px;border:1px solid var(--line);background:#fff;border-radius:var(--r-s);min-height:44px;text-align:left}
+.user-chip:hover{border-color:var(--primary)}
+.user-chip b{font-size:14px;font-weight:600}
+.user-chip span{font-size:12px;color:var(--muted)}
+.login-short{display:none}
+@media (max-width:1020px){
+  .hdr-in{flex-wrap:wrap;gap:8px 12px;padding-top:10px}
+  .nav{order:3;width:100%;overflow-x:auto;margin:0 -12px;padding:0 12px 6px}
+  html{scroll-padding-top:120px}
+}
+@media (max-width:440px){.brand-txt{display:none}}
+@media (max-width:600px){
+  .brand-txt span{display:none}
+  .login-long{display:none}.login-short{display:inline}
+  .btn-login{padding:0 14px}
+}
+
+/* Hero */
+.hero{padding:56px 0 56px;border-bottom:1px solid var(--line)}
+.hero-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:56px;align-items:start}
+.hero-weekday{font-size:20px;font-weight:500;color:var(--muted);margin:0 0 6px}
+.hero-date{font-size:clamp(52px,8.4vw,104px);line-height:.92;font-weight:700;letter-spacing:-.035em;margin:0}
+.hero h1{font-size:clamp(22px,2.4vw,28px);line-height:1.25;font-weight:600;letter-spacing:-.01em;margin:32px 0 12px;max-width:28ch}
+.hero-lead{color:var(--muted);max-width:54ch;margin:0 0 28px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px}
+.board{background:#fff;border:1px solid var(--line);border-radius:var(--r-l);padding:24px 24px 8px;box-shadow:var(--shadow)}
+.board h2{font-size:17px;font-weight:600;margin:0}
+.board-sub{font-size:14px;color:var(--muted);margin:2px 0 12px}
+.board-row{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:baseline;padding:12px 0;border-top:1px dashed var(--line)}
+.board-row b{font-weight:600;font-size:15px}
+.board-row small{display:block;color:var(--muted);font-size:13px;line-height:1.4;margin-top:2px}
+.board-row .price{font-size:17px}
+.board-status{margin:12px -24px 0;padding:14px 24px 16px;border-top:1px solid var(--line);background:#FBFAF8;border-radius:0 0 var(--r-l) var(--r-l);display:grid;gap:8px}
+.board-status div{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px}
+.board-status .pill{white-space:normal;text-align:right}
+@media (max-width:900px){.hero-grid{grid-template-columns:minmax(0,1fr);gap:36px}.hero{padding:36px 0 40px}}
+
+/* Sections */
+.sec{padding:72px 0;border-bottom:1px solid var(--line)}
+.sec-h{margin-bottom:28px}
+.sec h2{font-size:clamp(26px,3vw,34px);line-height:1.15;font-weight:700;letter-spacing:-.02em;margin:0}
+.sec-lead{color:var(--muted);margin:8px 0 0;max-width:62ch}
+@media (max-width:600px){.sec{padding:52px 0}}
+
+/* Status pills */
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.55}
+.pill-open{background:var(--ok);color:#2D4A37}
+.pill-closed{background:#E6E5E1;color:#55595E}
+
+/* Menu controls */
+.menu-top{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin-bottom:16px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px;gap:4px}
+.seg button{border:0;background:none;padding:0 14px;border-radius:7px;font-weight:500;font-size:15px;min-height:40px;color:var(--muted)}
+.seg button:hover{color:var(--text)}
+.seg button[aria-pressed="true"]{background:var(--tag-std);color:var(--text);font-weight:600}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:0 14px;min-height:42px;border-radius:21px;border:1px solid var(--line);background:#fff;font-size:14px;font-weight:500}
+.chip .dot{width:10px;height:10px;border-radius:50%;border:1px solid rgba(46,51,56,.18)}
+.chip[aria-pressed="true"]{border-color:var(--text);background:var(--chip-bg,#fff)}
+.chip[aria-pressed="true"]::after{content:"";width:6px;height:10px;border:solid var(--text);border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-2px);margin-left:2px}
+.search-wrap{position:relative;flex:1 1 240px}
+.search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted);pointer-events:none}
+.search{width:100%;min-height:44px;border:1px solid var(--line);border-radius:var(--r-s);padding:0 14px 0 40px;background:#fff;font:inherit;color:inherit}
+select,.input,textarea{min-height:44px;border:1px solid var(--line);border-radius:var(--r-s);padding:0 12px;background:#fff;font:inherit;color:inherit}
+textarea{padding:10px 12px;resize:vertical;min-height:72px;width:100%}
+.search:focus,select:focus,.input:focus,textarea:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px rgba(122,147,172,.25)}
+.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);margin:16px 0 28px;scrollbar-width:thin}
+.tabs button{border:0;background:none;padding:0 14px;min-height:46px;white-space:nowrap;font-weight:500;font-size:15px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button:hover{color:var(--text)}
+.tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--primary-strong);font-weight:600}
+.tabs .cnt{font-size:12px;color:var(--muted);margin-left:6px;font-weight:500}
+.group{margin-bottom:40px}
+.group-h{display:flex;align-items:baseline;gap:10px;margin:0 0 16px}
+.group-h h3{font-size:20px;font-weight:600;margin:0}
+.group-h span{color:var(--muted);font-size:14px}
+
+/* Cards */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media (max-width:1140px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:800px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:540px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden;display:flex;flex-direction:column}
+.card.off{opacity:.62}
+.card-img{height:108px;width:100%;border:0;padding:0;display:grid;place-items:center;position:relative;cursor:pointer}
+.card-img svg{width:42px;height:42px;color:var(--text);opacity:.5}
+.card-img .gi{position:absolute;right:10px;top:10px;background:rgba(255,255,255,.85);border-radius:4px;padding:2px 7px;font-size:12px;font-weight:600}
+.card-img .na{position:absolute;left:10px;top:10px;background:#fff;border-radius:4px;padding:2px 7px;font-size:12px;font-weight:600;color:#7A4A43}
+.card-b{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
+.card-t{font-weight:600;font-size:16px;line-height:1.3;text-align:left;background:none;border:0;padding:0;cursor:pointer}
+.card-t:hover{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.meta{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.price{font-size:18px;font-weight:700;white-space:nowrap}
+.weight{color:var(--muted);font-size:14px;white-space:nowrap}
+.kbju{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--bg);border-radius:6px;padding:7px 4px}
+.kbju div{text-align:center;line-height:1.2}
+.kbju b{display:block;font-size:14px;font-weight:600}
+.kbju span{font-size:11px;color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;font-weight:600;padding:3px 8px;border-radius:4px;line-height:1.4}
+.t-s{background:var(--tag-std)}.t-d{background:var(--tag-dia)}.t-p{background:var(--tag-pp)}
+.card-f{margin-top:auto;padding-top:2px}
+.qty{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--primary);border-radius:var(--r-s);min-height:44px;background:#F4F7FA}
+.qty button{width:44px;height:42px;border:0;background:none;font-size:20px;line-height:1;border-radius:var(--r-s)}
+.qty button:hover{background:var(--tag-std)}
+.qty output{font-weight:600}
+.empty{background:#fff;border:1px dashed var(--line);border-radius:var(--r-m);padding:40px 24px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--text);font-size:17px;margin-bottom:6px}
+
+/* Payment / delivery */
+.two{display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:start}
+@media (max-width:900px){.two{grid-template-columns:1fr;gap:28px}}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:0;counter-reset:s}
+.steps li{display:grid;grid-template-columns:44px 1fr;gap:16px;padding:20px 0;border-top:1px solid var(--line);counter-increment:s}
+.steps li:last-child{border-bottom:1px solid var(--line)}
+.steps li::before{content:counter(s);width:36px;height:36px;border-radius:50%;border:1.5px solid var(--primary);display:grid;place-items:center;font-weight:600;color:var(--primary-strong)}
+.steps b{display:block;font-size:17px;margin-bottom:4px}
+.steps p{margin:0;color:var(--muted)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:var(--r-l);padding:24px}
+.panel h3{margin:0 0 14px;font-size:18px;font-weight:600}
+.limit-row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:14px 0;border-top:1px solid var(--line)}
+.limit-row span{color:var(--muted)}
+.limit-row b{font-size:22px;font-weight:700}
+.note{font-size:14px;color:var(--muted);margin:14px 0 0;padding:12px 14px;background:var(--tag-pp);border-radius:var(--r-s);color:#3B4A3F}
+dl.facts{margin:0;display:grid;grid-template-columns:auto 1fr;gap:0}
+dl.facts dt,dl.facts dd{padding:14px 0;border-top:1px solid var(--line);margin:0}
+dl.facts dt{color:var(--muted);padding-right:24px}
+dl.facts dd{font-weight:600;text-align:right}
+.slots{display:flex;flex-wrap:wrap;gap:8px}
+.slot{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--r-s);background:#fff;min-width:104px;min-height:44px;text-align:left}
+.slot b{font-size:17px}
+.slot small{font-size:12px;color:var(--muted)}
+.slot.closed{background:#F1F0EC;color:var(--muted)}
+button.slot:hover:not([disabled]){border-color:var(--primary)}
+button.slot[aria-pressed="true"]{border-color:var(--primary-strong);background:var(--tag-std);box-shadow:inset 0 0 0 1px var(--primary-strong)}
+button.slot[disabled]{cursor:not-allowed}
+
+/* Schedule */
+.sched{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media (max-width:1100px){.sched{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.sched{grid-template-columns:1fr}}
+.sc{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:20px;display:flex;flex-direction:column;gap:12px}
+.sc.shop{background:#FBF7F4;border-color:#EADBD2}
+.sc h3{margin:0;font-size:17px;font-weight:600}
+.sc .loc{color:var(--muted);font-size:14px;margin:2px 0 0}
+.sc table{width:100%;border-collapse:collapse;font-size:14px}
+.sc td{padding:6px 0;border-top:1px solid var(--line)}
+.sc td:last-child{text-align:right;font-weight:500}
+.sc .extra{font-size:13px;color:var(--muted);margin:0}
+
+/* Map */
+.map-grid{display:grid;grid-template-columns:1fr 320px;gap:20px}
+@media (max-width:900px){.map-grid{grid-template-columns:1fr}}
+#map{height:440px;border-radius:var(--r-l);border:1px solid var(--line);background:#E9ECEE;z-index:1}
+.map-fallback{height:100%;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted)}
+.places{list-style:none;margin:0;padding:0;display:grid;gap:10px;align-content:start}
+.places li{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:14px 16px;display:grid;grid-template-columns:32px 1fr;gap:12px}
+.places .n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--tag-std)}
+.places .n.s{background:var(--powder)}
+.places b{display:block;font-size:15px}
+.places span{display:block;font-size:13px;color:var(--muted)}
+.places .link{background:none;border:0;padding:0;margin-top:6px;color:var(--primary-strong);font-weight:600;font-size:14px;min-height:28px}
+.mk-pin{width:32px;height:32px;border-radius:50%;background:var(--primary-strong);color:#fff;display:grid;place-items:center;font:700 14px Inter,system-ui,sans-serif;border:3px solid #fff;box-shadow:0 1px 4px rgba(46,51,56,.35)}
+.mk-pin.s{background:#B08A78}
+.leaflet-popup-content{font:14px/1.45 Inter,system-ui,sans-serif;color:var(--text);margin:14px 16px}
+.leaflet-popup-content b{font-size:15px}
+.pop-btn{margin-top:10px;width:100%;min-height:38px;border:0;border-radius:6px;background:var(--primary-strong);color:#fff;font-weight:600}
+
+/* Footer */
+.ftr{padding:40px 0 96px;color:var(--muted);font-size:14px}
+.ftr-in{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-start}
+.ftr p{margin:4px 0}
+
+/* Dialogs */
+dialog{border:0;padding:0;color:var(--text);background:#fff;box-shadow:0 12px 40px rgba(46,51,56,.18)}
+dialog::backdrop{background:rgba(46,51,56,.38)}
+.modal{width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);border-radius:var(--r-l)}
+.modal-in{padding:24px;overflow:auto}
+.modal-h{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
+.modal-h h2{margin:0;font-size:22px;line-height:1.25;font-weight:700}
+.x{width:40px;height:40px;border:0;border-radius:var(--r-s);background:var(--soft);display:grid;place-items:center;flex-shrink:0}
+.x:hover{background:var(--tag-std)}
+.drawer{position:fixed;inset:0 0 0 auto;margin:0;height:100%;max-height:100%;width:min(460px,100vw);max-width:100vw;border-left:1px solid var(--line)}
+.drawer[open]{display:flex;flex-direction:column}
+.drawer-h{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.drawer-h h2{margin:0;font-size:20px}
+.drawer-h p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.drawer-b{flex:1;overflow:auto;padding:4px 20px 20px}
+.drawer-f{border-top:1px solid var(--line);padding:16px 20px;background:#FBFAF8}
+@media (max-width:600px){
+  .drawer{inset:auto 0 0 0;width:100%;height:92dvh;max-height:92dvh;border-left:0;border-radius:var(--r-l) var(--r-l) 0 0}
+}
+.ci{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.ci b{font-weight:600;font-size:15px;line-height:1.3}
+.ci small{color:var(--muted);font-size:13px}
+.ci .qty{min-height:36px;width:120px}
+.ci .qty button{height:34px;width:36px;font-size:18px}
+.ci .rm{background:none;border:0;color:var(--muted);font-size:13px;padding:0;text-decoration:underline;justify-self:start;min-height:28px}
+.blk{padding:18px 0;border-bottom:1px solid var(--line)}
+.blk h3{font-size:15px;font-weight:600;margin:0 0 10px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:15px}
+.kv span{color:var(--muted)}
+.kv.big{font-size:18px;font-weight:700;padding-top:10px;margin-top:6px;border-top:1px solid var(--line)}
+.kv.big span{color:var(--text)}
+.radio{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-s);margin-bottom:8px;cursor:pointer;min-height:44px}
+.radio:has(input:checked){border-color:var(--primary-strong);background:#F4F7FA}
+.radio input{accent-color:var(--primary-strong);width:18px;height:18px;margin:0}
+.radio small{display:block;color:var(--muted);font-size:13px}
+.err-msg{color:#8A3F35;background:#F6E3E0;border-radius:var(--r-s);padding:10px 12px;font-size:14px;margin:10px 0 0}
+.info-msg{color:#45505B;background:var(--soft);border-radius:var(--r-s);padding:10px 12px;font-size:14px;margin:10px 0 0}
+.fine{font-size:13px;color:var(--muted);margin:8px 0 0}
+.field{display:grid;gap:6px;margin-bottom:14px}
+.field label{font-size:14px;font-weight:600}
+.field .input{width:100%;font-size:17px;letter-spacing:.04em}
+.demo{font-size:13px;color:var(--muted);background:var(--bg);border-radius:var(--r-s);padding:10px 12px;margin:0 0 16px}
+.code{font-size:56px;font-weight:700;letter-spacing:.18em;text-align:center;padding:18px;background:var(--tag-pp);border-radius:var(--r-m);margin:6px 0 4px;font-variant-numeric:tabular-nums}
+.dish-hero{height:140px;border-radius:var(--r-m);display:grid;place-items:center;margin-bottom:16px}
+.dish-hero svg{width:56px;height:56px;opacity:.5}
+table.nutr{width:100%;border-collapse:collapse;font-size:15px;margin:6px 0 16px}
+table.nutr th,table.nutr td{padding:8px 0;border-top:1px solid var(--line);text-align:right;font-weight:500}
+table.nutr th:first-child,table.nutr td:first-child{text-align:left;color:var(--muted);font-weight:400}
+table.nutr thead th{font-size:13px;color:var(--muted);font-weight:600;border-top:0}
+
+/* FAB + toast */
+.fab{position:fixed;left:16px;right:16px;bottom:16px;z-index:800;display:none;justify-content:space-between;box-shadow:0 6px 20px rgba(46,51,56,.25);min-height:52px}
+@media (max-width:800px){.fab.show{display:flex}}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;padding:12px 18px;border-radius:var(--r-s);font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:2000;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="wrap hdr-in">
+    <a class="brand" href="#top" aria-label="На главную">
+      <span id="logoSlot"></span>
+      <span class="brand-txt"><b class="js-factory">[Название завода]</b><span data-i18n="brand_sub">Столовые</span></span>
+    </a>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#menu" data-i18n="nav_menu">Меню</a>
+      <a href="#payment" data-i18n="nav_payment">Оплата</a>
+      <a href="#delivery" data-i18n="nav_delivery">Доставка</a>
+      <a href="#schedule" data-i18n="nav_schedule">Режим работы</a>
+      <a href="#map-sec" data-i18n="nav_map">Карта</a>
+    </nav>
+    <div class="hdr-actions">
+      <div class="lang" role="group" aria-label="Язык / Тіл">
+        <button type="button" data-lang="ru" aria-pressed="true">RU</button>
+        <button type="button" data-lang="kz" aria-pressed="false">KZ</button>
+      </div>
+      <div id="userSlot"></div>
+      <button type="button" class="icon-btn" id="cartBtn" data-i18n-aria="cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.2 10.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg>
+        <span class="badge-count" id="cartCount" hidden>0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="hero-weekday" id="heroWeekday"></p>
+        <p class="hero-date" id="heroDate"></p>
+        <h1 data-i18n="hero_title">Обед в столовых завода: меню, цены и состав блюд</h1>
+        <p class="hero-lead" data-i18n="hero_lead"></p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#menu" data-i18n="cta_menu">Смотреть меню</a>
+          <a class="btn btn-ghost" href="#payment" data-i18n="cta_pay">Как работает оплата</a>
+        </div>
+      </div>
+      <aside class="board" aria-labelledby="boardTitle">
+        <h2 id="boardTitle" data-i18n="board_title">Комплексные обеды сегодня</h2>
+        <p class="board-sub" id="boardSub"></p>
+        <div id="boardRows"></div>
+        <div class="board-status" id="boardStatus"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="sec" id="menu">
+    <div class="wrap">
+      <div class="sec-h">
+        <h2 data-i18n="menu_title">Меню</h2>
+        <p class="sec-lead" data-i18n="menu_lead"></p>
+      </div>
+      <div class="menu-top">
+        <div class="seg" role="group" id="canteenSeg" data-i18n-aria="canteen"></div>
+        <div class="seg" role="group" id="daySeg" data-i18n-aria="date"></div>
+      </div>
+      <div class="controls">
+        <div class="chips" role="group" id="filterChips" data-i18n-aria="diet_type"></div>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <label class="sr" for="search" data-i18n="search_ph">Поиск блюда</label>
+          <input class="search" id="search" type="search" data-i18n-ph="search_ph" autocomplete="off">
+        </div>
+        <label class="sr" for="sort" data-i18n="sort">Сортировка</label>
+        <select id="sort">
+          <option value="default" data-i18n="sort_default">По умолчанию</option>
+          <option value="price_asc" data-i18n="sort_price_asc">Сначала дешевле</option>
+          <option value="price_desc" data-i18n="sort_price_desc">Сначала дороже</option>
+          <option value="kcal" data-i18n="sort_kcal">По калорийности</option>
+        </select>
+      </div>
+      <div class="tabs" role="tablist" id="catTabs"></div>
+      <div id="menuGrid" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="payment">
+    <div class="wrap">
+      <div class="sec-h">
+        <h2 data-i18n="pay_title">Оплата по табельному номеру</h2>
+        <p class="sec-lead" data-i18n="pay_lead"></p>
+      </div>
+      <div class="two">
+        <ol class="steps">
+          <li><div><b data-i18n="step1_t"></b><p data-i18n="step1_d"></p></div></li>
+          <li><div><b data-i18n="step2_t"></b><p data-i18n="step2_d"></p></div></li>
+          <li><div><b data-i18n="step3_t"></b><p data-i18n="step3_d"></p></div></li>
+        </ol>
+        <div class="panel">
+          <h3 data-i18n="limits_title">Суточная дотация</h3>
+          <div class="limit-row"><span data-i18n="shift_std_long"></span><b class="num" id="limStd"></b></div>
+          <div class="limit-row"><span data-i18n="shift_ext_long"></span><b class="num" id="limExt"></b></div>
+          <p class="note" data-i18n="carry_note"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="delivery">
+    <div class="wrap">
+      <div class="sec-h">
+        <h2 data-i18n="del_title">Доставка на центральную проходную</h2>
+        <p class="sec-lead" data-i18n="del_lead"></p>
+      </div>
+      <div class="two">
+        <div class="panel">
+          <h3 data-i18n="del_slots_today">Время выдачи сегодня</h3>
+          <div class="slots" id="delSlotsView"></div>
+          <p class="fine" data-i18n="del_slots_hint"></p>
+        </div>
+        <dl class="facts" id="delFacts"></dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="schedule">
+    <div class="wrap">
+      <div class="sec-h">
+        <h2 data-i18n="sched_title">Режим работы</h2>
+        <p class="sec-lead" data-i18n="sched_lead"></p>
+      </div>
+      <div class="sched" id="schedGrid"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="map-sec">
+    <div class="wrap">
+      <div class="sec-h">
+        <h2 data-i18n="map_title">Как найти столовые</h2>
+        <p class="sec-lead" data-i18n="map_lead"></p>
+      </div>
+      <div class="map-grid">
+        <div id="map" role="region" data-i18n-aria="map_title"></div>
+        <ul class="places" id="placesList"></ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="ftr">
+  <div class="wrap ftr-in">
+    <div>
+      <p><b class="js-factory" style="color:var(--text)">[Название завода]</b></p>
+      <p data-i18n="footer_desc"></p>
+    </div>
+    <div>
+      <p data-i18n="footer_phone_label"></p>
+      <p><a href="tel:+77212000000">+7 (7212) 00-00-00</a></p>
+    </div>
+    <div>
+      <p><a href="#top" data-i18n="footer_rules">Правила пользования</a></p>
+      <p>© 2026 <span class="js-factory">[Название завода]</span></p>
+    </div>
+  </div>
+</footer>
+
+<button type="button" class="btn btn-primary fab" id="fab"><span data-i18n="cart">Корзина</span><span id="fabSum" class="num"></span></button>
+
+<dialog class="drawer" id="cartDlg" aria-labelledby="cartTitle">
+  <div class="drawer-h">
+    <div><h2 id="cartTitle" data-i18n="cart">Корзина</h2><p id="cartSub"></p></div>
+    <button type="button" class="x" data-close data-i18n-aria="close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="drawer-b" id="cartBody"></div>
+  <div class="drawer-f" id="cartFoot"></div>
+</dialog>
+
+<dialog class="modal" id="dishDlg" aria-labelledby="dishTitle"><div class="modal-in" id="dishBody"></div></dialog>
+<dialog class="modal" id="loginDlg" aria-labelledby="loginTitle"><div class="modal-in" id="loginBody"></div></dialog>
+<dialog class="modal" id="profileDlg" aria-labelledby="profileTitle"><div class="modal-in" id="profileBody"></div></dialog>
+<dialog class="modal" id="confirmDlg" aria-labelledby="confirmTitle"><div class="modal-in" id="confirmBody"></div></dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+"use strict";
+/* =========================================================
+   КОНФИГУРАЦИЯ (редактируется заказчиком)
+   ========================================================= */
+const CONFIG = {
+  factoryName: '[Название завода]',
+  currency: '₸',
+  timezone: 'Asia/Almaty',
+  utcOffsetHours: 5,
+  subsidy: {
+    thresholdHours: 8,
+    dailyLimit: { standard: 2258, extended: 3391 },
+    period: 'calendar_day',
+    overnightShiftRule: 'shift_start_date',
+    carryOver: true,
+    carryOverReset: 'month' // 'month' | 'none'
+  },
+  delivery: { fee: 0, minOrder: 1000, cutoffMinutes: 60, slots: ['11:30','13:00','16:30','19:30','23:30'], storageHours: 2 },
+  mapCenter: [49.8050, 73.1110]
+};
+
+// hours: индекс 0 = воскресенье … 6 = суббота; [открытие, закрытие] в минутах или null
+const H = (a,b)=>[toMin(a),toMin(b)];
+function toMin(s){const [h,m]=s.split(':').map(Number);return h*60+m;}
+const CANTEENS = [
+  { id:'c1', name:{ru:'Столовая №1',kz:'№1 асхана'}, location:{ru:'Корпус А, 1 этаж',kz:'А корпусы, 1-қабат'},
+    coords:[49.8047,73.1094], phone:'+7 (7212) 00-00-01', breaks:['10:30–11:00'],
+    hours:[null,H('07:00','20:00'),H('07:00','20:00'),H('07:00','20:00'),H('07:00','20:00'),H('07:00','20:00'),H('08:00','16:00')] },
+  { id:'c2', name:{ru:'Столовая №2',kz:'№2 асхана'}, location:{ru:'Механосборочный цех, 2 этаж',kz:'Механикалық құрастыру цехы, 2-қабат'},
+    coords:[49.8085,73.1180], phone:'+7 (7212) 00-00-02', breaks:['15:00–15:30'],
+    hours:Array(7).fill(0).map(()=>H('06:30','22:00')) },
+  { id:'c3', name:{ru:'Столовая №3',kz:'№3 асхана'}, location:{ru:'Административный корпус, цокольный этаж',kz:'Әкімшілік корпус, цокольдық қабат'},
+    coords:[49.8010,73.1150], phone:'+7 (7212) 00-00-03', breaks:[],
+    hours:[H('09:00','18:00'),H('07:00','23:00'),H('07:00','23:00'),H('07:00','23:00'),H('07:00','23:00'),H('07:00','23:00'),H('07:00','23:00')] }
+];
+const SHOP = { name:{ru:'Магазин на центральной проходной',kz:'Орталық өткізу пунктіндегі дүкен'},
+  location:{ru:'Центральная проходная, вход со стороны парковки',kz:'Орталық өткізу пункті, тұрақ жағынан кіру'},
+  coords:[49.8030,73.1050], phone:'+7 (7212) 00-00-09', allDay:true };
+
+// Мок-данные сотрудников (заменяются интеграцией с HR / 1С)
+const EMPLOYEES = [
+  { tabNumber:'100245', pin:'1111', name:{ru:'Ахметов Е. С.',kz:'Ахметов Е. С.'}, shiftHours:8,  carriedOver:0,    spentToday:0 },
+  { tabNumber:'100377', pin:'2222', name:{ru:'Иванова О. П.',kz:'Иванова О. П.'}, shiftHours:8,  carriedOver:0,    spentToday:1800 },
+  { tabNumber:'200118', pin:'3333', name:{ru:'Сейткали А. Н.',kz:'Сейтқали А. Н.'}, shiftHours:12, carriedOver:0,    spentToday:0 },
+  { tabNumber:'200254', pin:'4444', name:{ru:'Ким Д. В.',kz:'Ким Д. В.'},          shiftHours:11, carriedOver:1200, spentToday:2500 }
+];
+
+const CATS = ['salad','soup','main','side','bakery','drink','combo'];
+
+/* Справочник блюд.
+   [id, категория, название RU, название KZ, вес, ед., цена ₸, Б/100, Ж/100, У/100, метки (s=стандарт, d=диабет, p=ПП), ГИ, аллергены (g=глютен, e=яйцо, m=молоко, f=рыба), состав RU, состав KZ] */
+const POOL = [
+ ['d01','salad','Ачичук','Ачичук салаты',150,'g',450,1,3.5,4,'sdp',15,'','Помидоры, репчатый лук, сладкий перец, зелень, растительное масло','Қызанақ, пияз, тәтті бұрыш, көк, өсімдік майы'],
+ ['d02','salad','Винегрет','Винегрет',150,'g',380,1.4,4,8,'sp',0,'','Свёкла, картофель, морковь, квашеная капуста, огурцы, масло','Қызылша, картоп, сәбіз, ашытылған қырыққабат, қияр, май'],
+ ['d03','salad','Салат из капусты с морковью','Сәбіз қосылған қырыққабат салаты',150,'g',320,1.2,3,5,'dp',15,'','Свежая капуста, морковь, лимонный сок, масло','Жас қырыққабат, сәбіз, лимон шырыны, май'],
+ ['d04','salad','Оливье','Оливье салаты',150,'g',690,5,14,7,'s',0,'em','Отварная говядина, картофель, яйцо, горошек, огурцы, майонез','Пісірілген сиыр еті, картоп, жұмыртқа, бұршақ, қияр, майонез'],
+ ['d05','salad','Греческий салат','Грек салаты',180,'g',890,3,9,4,'dp',15,'m','Огурцы, томаты, перец, маслины, брынза, оливковое масло','Қияр, қызанақ, бұрыш, зәйтүн, ірімшік, зәйтүн майы'],
+ ['d06','salad','Цезарь с курицей','Тауық қосылған «Цезарь»',200,'g',1290,8.5,11,6,'s',0,'gem','Салат романо, куриное филе, сухарики, пармезан, соус','Романо салаты, тауық еті, кептірілген нан, пармезан, тұздық'],
+ ['d07','salad','Свёкла с чесноком','Сарымсақ қосылған қызылша',150,'g',350,1.5,6,9,'s',0,'','Отварная свёкла, чеснок, грецкий орех, сметанный соус','Пісірілген қызылша, сарымсақ, грек жаңғағы, қаймақ тұздығы'],
+ ['d08','salad','Сельдь под шубой','«Тон астындағы майшабақ»',150,'g',650,5,14,6,'s',0,'ef','Сельдь, картофель, морковь, свёкла, яйцо, майонез','Майшабақ, картоп, сәбіз, қызылша, жұмыртқа, майонез'],
+ ['d09','salad','Огурцы со сметаной','Қаймақ қосылған қияр',150,'g',400,1,4,3,'sd',15,'m','Свежие огурцы, сметана 15%, укроп','Жас қияр, 15% қаймақ, аскөк'],
+ ['d10','soup','Сорпа с мясом','Етті сорпа',300,'ml',790,4,3,1,'sdp',10,'','Говядина, наваристый бульон, лук, зелень','Сиыр еті, қою сорпа, пияз, көк'],
+ ['d11','soup','Борщ со сметаной','Қаймақ қосылған борщ',300,'ml',650,1.6,3,5,'s',0,'m','Свёкла, капуста, картофель, говядина, сметана','Қызылша, қырыққабат, картоп, сиыр еті, қаймақ'],
+ ['d12','soup','Щи из свежей капусты','Жас қырыққабаттан щи',300,'ml',520,1,1.8,3,'dp',30,'','Свежая капуста, морковь, лук, овощной бульон','Жас қырыққабат, сәбіз, пияз, көкөніс сорпасы'],
+ ['d13','soup','Куриный суп с лапшой','Кеспе қосылған тауық сорпасы',300,'ml',580,3,1.8,5,'s',0,'ge','Куриный бульон, домашняя лапша, морковь','Тауық сорпасы, үй кеспесі, сәбіз'],
+ ['d14','soup','Суп-пюре из брокколи','Брокколи пюре-сорпасы',300,'ml',690,1.8,2,3,'dp',15,'m','Брокколи, цветная капуста, сливки 10%','Брокколи, түсті қырыққабат, 10% кілегей'],
+ ['d15','soup','Чечевичный суп','Жасымық сорпасы',300,'ml',560,3,1.3,7,'dp',30,'','Красная чечевица, морковь, лук, зира','Қызыл жасымық, сәбіз, пияз, зире'],
+ ['d16','soup','Солянка мясная','Етті солянка',300,'ml',890,4,4.5,2,'s',0,'','Говядина, копчёности, огурцы, маслины, лимон','Сиыр еті, ысталған ет, қияр, зәйтүн, лимон'],
+ ['d17','soup','Шорпа','Шорпа',300,'ml',850,4.5,4,4,'s',0,'','Баранина, картофель, морковь, лук, зелень','Қой еті, картоп, сәбіз, пияз, көк'],
+ ['d18','main','Плов с говядиной','Сиыр етінен палау',300,'g',1450,6,9,22,'s',0,'','Рис девзира, говядина, морковь, лук, зира, чеснок','Девзира күріші, сиыр еті, сәбіз, пияз, зире, сарымсақ'],
+ ['d19','main','Бешбармак','Бешбармақ',350,'g',2300,10,9,14,'s',0,'g','Конина и говядина, тонкое тесто, лук, сорпа','Жылқы және сиыр еті, жұқа қамыр, пияз, сорпа'],
+ ['d20','main','Манты с говядиной, 4 шт','Сиыр етінен манты, 4 дана',280,'g',1350,8,9,20,'s',0,'g','Тесто, рубленая говядина, лук, тыква','Қамыр, туралған сиыр еті, пияз, асқабақ'],
+ ['d21','main','Лагман','Лағман',350,'g',1390,6,5,17,'s',0,'g','Тянутая лапша, говядина, перец, редька, томаты','Созылған кеспе, сиыр еті, бұрыш, шалғам, қызанақ'],
+ ['d22','main','Куырдак','Қуырдақ',250,'g',1650,14,16,4,'s',0,'','Говядина, ливер, картофель, лук','Сиыр еті, өкпе-бауыр, картоп, пияз'],
+ ['d23','main','Куриное филе на пару','Буға пісірілген тауық еті',150,'g',950,23,2,0.5,'dp',15,'','Куриное филе, соль, прованские травы','Тауық еті, тұз, прованс шөптері'],
+ ['d24','main','Минтай, запечённый с овощами','Көкөніспен пісірілген минтай',200,'g',1190,14,3,3,'dp',15,'f','Филе минтая, кабачок, томаты, лук','Минтай еті, кәді, қызанақ, пияз'],
+ ['d25','main','Котлета по-домашнему','Үй котлеті',120,'g',690,14,15,9,'s',0,'ge','Говядина и свинина, лук, батон, яйцо','Сиыр және шошқа еті, пияз, нан, жұмыртқа'],
+ ['d26','main','Гуляш из говядины','Сиыр етінен гуляш',150,'g',1090,15,10,4,'s',0,'','Говядина, томатный соус, лук, паприка','Сиыр еті, қызанақ тұздығы, пияз, паприка'],
+ ['d27','main','Тефтели из индейки на пару','Буға пісірілген күркетауық тефтелі',150,'g',1150,16,5,4,'dp',20,'e','Индейка, рис, лук, яйцо','Күркетауық, күріш, пияз, жұмыртқа'],
+ ['d28','main','Омлет с овощами','Көкөністі омлет',180,'g',590,8,9,3,'dp',10,'em','Яйца, молоко, томаты, шпинат','Жұмыртқа, сүт, қызанақ, саумалдық'],
+ ['d29','main','Говядина тушёная с овощами','Көкөніспен бұқтырылған сиыр еті',200,'g',1390,13,7,4,'dp',20,'','Говядина, кабачок, перец, морковь','Сиыр еті, кәді, бұрыш, сәбіз'],
+ ['d30','main','Сырники со сметаной','Қаймақ қосылған сырниктер',180,'g',690,15,9,18,'s',0,'gem','Творог, мука, яйцо, сметана','Сүзбе, ұн, жұмыртқа, қаймақ'],
+ ['d31','side','Гречка отварная','Пісірілген қарақұмық',150,'g',290,4,2.5,20,'sdp',45,'','Гречневая крупа, сливочное масло','Қарақұмық жармасы, сары май'],
+ ['d32','side','Картофельное пюре','Картоп пюресі',150,'g',320,2,3.5,14,'s',0,'m','Картофель, молоко, сливочное масло','Картоп, сүт, сары май'],
+ ['d33','side','Рис отварной','Пісірілген күріш',150,'g',280,2.5,1,27,'s',0,'','Рис длиннозёрный','Ұзын дәнді күріш'],
+ ['d34','side','Овощи на пару','Буға пісірілген көкөністер',150,'g',450,1.8,0.5,5,'dp',15,'','Брокколи, цветная капуста, морковь, фасоль','Брокколи, түсті қырыққабат, сәбіз, үрме бұршақ'],
+ ['d35','side','Макароны отварные','Пісірілген макарон',150,'g',260,4,2,26,'s',0,'g','Макароны из твёрдых сортов, масло','Қатты бидайдан макарон, май'],
+ ['d36','side','Бурый рис','Қоңыр күріш',150,'g',380,2.6,1,24,'dp',50,'','Нешлифованный рис','Тазартылмаған күріш'],
+ ['d37','side','Капуста тушёная','Бұқтырылған қырыққабат',150,'g',300,1.8,3,5,'dp',15,'','Капуста, морковь, томатная паста','Қырыққабат, сәбіз, қызанақ пастасы'],
+ ['d38','bakery','Баурсаки, 5 шт','Бауырсақ, 5 дана',100,'g',250,7,17,47,'s',0,'gm','Мука, молоко, дрожжи, масло для жарки','Ұн, сүт, ашытқы, қуыруға арналған май'],
+ ['d39','bakery','Самса с говядиной','Сиыр етінен самса',120,'g',450,10,15,30,'s',0,'g','Слоёное тесто, говядина, лук','Қатпарлы қамыр, сиыр еті, пияз'],
+ ['d40','bakery','Хлеб ржаной цельнозерновой','Тұтас дәнді қара бидай наны',40,'g',60,8,1.3,42,'dp',45,'g','Ржаная цельнозерновая мука, закваска','Тұтас дәнді қара бидай ұны, ашытқы'],
+ ['d41','bakery','Хлеб пшеничный','Бидай наны',40,'g',50,8,2,49,'s',0,'g','Пшеничная мука, дрожжи','Бидай ұны, ашытқы'],
+ ['d42','bakery','Пирожок с картофелем','Картоп салынған бәліш',90,'g',220,6,8,33,'s',0,'g','Дрожжевое тесто, картофель, лук','Ашытқы қамыр, картоп, пияз'],
+ ['d43','bakery','Овсяное печенье без сахара','Қантсыз сұлы печеньесі',60,'g',280,8,12,58,'dp',40,'g','Овсяные хлопья, цельнозерновая мука, стевия','Сұлы үлпектері, тұтас дәнді ұн, стевия'],
+ ['d44','drink','Чай с молоком','Сүт қосылған шай',250,'ml',150,0.8,0.8,1.2,'sd',30,'m','Чёрный чай, молоко, без сахара','Қара шай, сүт, қантсыз'],
+ ['d45','drink','Компот из сухофруктов','Кептірілген жеміс компоты',200,'ml',180,0.3,0,12,'s',0,'','Курага, изюм, яблоки, сахар','Өрік қағы, мейіз, алма, қант'],
+ ['d46','drink','Айран','Айран',250,'ml',250,2.8,1.5,4,'sdp',30,'m','Кисломолочный напиток','Ашытылған сүт сусыны'],
+ ['d47','drink','Морс клюквенный без сахара','Қантсыз мүкжидек морсы',200,'ml',220,0.1,0,2.5,'dp',30,'','Клюква, вода, стевия','Мүкжидек, су, стевия'],
+ ['d48','drink','Кофе американо','Американо кофесі',200,'ml',350,0.2,0,0.3,'sd',0,'','Арабика, вода','Арабика, су'],
+ ['d49','drink','Сок апельсиновый','Апельсин шырыны',200,'ml',320,0.7,0.1,10,'s',0,'','100% апельсиновый сок','100% апельсин шырыны'],
+ ['d50','combo','Комплекс «Стандарт»','«Стандарт» кешені',830,'g',1890,3.5,4.6,9.6,'s',0,'gem','Борщ, котлета с пюре, хлеб, компот','Борщ, пюре қосылған котлет, нан, компот'],
+ ['d51','combo','Комплекс «Лёгкий»','«Жеңіл» кешені',800,'g',1990,4.8,1.5,3.1,'dp',25,'','Щи, куриное филе на пару, овощи на пару, морс','Щи, буға пісірілген тауық еті, буға пісірілген көкөніс, морс'],
+ ['d52','combo','Комплекс «Сытный»','«Тоқ» кешені',950,'g',2450,4.3,5,11.6,'s',0,'gm','Шорпа, плов, баурсаки, чай с молоком','Шорпа, палау, бауырсақ, сүт қосылған шай'],
+ ['d53','combo','Комплекс «Диабетический»','«Диабеттік» кешен',800,'g',2100,4.9,2.4,4.6,'dp',35,'e','Сорпа, тефтели из индейки, гречка, морс без сахара','Сорпа, күркетауық тефтелі, қарақұмық, қантсыз морс']
+];
+
+const r1 = n => Math.round(n*10)/10;
+const DISHES = POOL.map(a => {
+  const [id,cat,ru,kz,w,unit,price,p,f,c,tags,gi,al,compRu,compKz] = a;
+  const k = w/100;
+  const pp = r1(p*k), ff = r1(f*k), cc = r1(c*k);
+  return { id, cat, name:{ru,kz}, weight:w, unit, price,
+    per100:{protein:p,fat:f,carbs:c,kcal:Math.round(4*p+9*f+4*c)},
+    kbju:{protein:pp,fat:ff,carbs:cc,kcal:Math.round(4*pp+9*ff+4*cc)},
+    tags: tags.split('').map(x=>({s:'standard',d:'diabetic',p:'pp'})[x]),
+    glycemicIndex: gi || null,
+    allergens: al.split('').filter(Boolean).map(x=>({g:'gluten',e:'egg',m:'milk',f:'fish'})[x]),
+    composition:{ru:compRu,kz:compKz} };
+});
+
+/* =========================================================
+   ПЕРЕВОДЫ
+   ========================================================= */
+const T = {
+ru:{
+ brand_sub:'Столовые', nav_menu:'Меню', nav_payment:'Оплата', nav_delivery:'Доставка', nav_schedule:'Режим работы', nav_map:'Карта',
+ login_long:'Войти по табельному №', login_short:'Войти', cart:'Корзина', close:'Закрыть',
+ hero_title:'Обед в столовых завода: меню, цены и состав блюд',
+ hero_lead:'Выберите столовую, отметьте подходящий тип питания и закажите заранее. Оплата по табельному номеру в пределах дотации, выдача в столовой или в магазине на центральной проходной.',
+ cta_menu:'Смотреть меню', cta_pay:'Как работает оплата',
+ board_title:'Комплексные обеды сегодня', board_closed_day:'Сегодня в этой столовой выходной.',
+ menu_title:'Меню', menu_lead:'Цены в тенге, пищевая ценность указана на порцию. Нажмите на блюдо, чтобы увидеть состав и аллергены.',
+ canteen:'Столовая', date:'Дата', today:'Сегодня', tomorrow:'Завтра', diet_type:'Тип питания',
+ f_standard:'Стандартные', f_diabetic:'Для диабетиков', f_pp:'Правильное питание',
+ tag_standard:'Стандарт', tag_diabetic:'Диабет', tag_pp:'ПП',
+ search_ph:'Поиск блюда', sort:'Сортировка', sort_default:'По умолчанию', sort_price_asc:'Сначала дешевле', sort_price_desc:'Сначала дороже', sort_kcal:'Меньше калорий',
+ cat_all:'Все', cat_salad:'Салаты и закуски', cat_soup:'Первые блюда', cat_main:'Вторые блюда', cat_side:'Гарниры', cat_bakery:'Выпечка', cat_drink:'Напитки', cat_combo:'Комплексные обеды',
+ dishes_n:'{n} блюд', add:'В корзину', unavailable:'Нет в наличии', gi:'ГИ {n}',
+ empty_t:'По этим условиям блюд нет', empty_d:'Измените фильтры или поиск, чтобы увидеть больше блюд.', reset:'Сбросить фильтры',
+ k_kcal:'ккал', k_p:'Б', k_f:'Ж', k_c:'У', g:'г', ml:'мл',
+ n_kcal:'Калорийность', n_p:'Белки', n_f:'Жиры', n_c:'Углеводы', per_portion:'Порция', per_100:'На 100 {u}',
+ composition:'Состав', allergens:'Аллергены', none:'нет', gi_full:'Гликемический индекс',
+ al_gluten:'глютен', al_egg:'яйцо', al_milk:'молоко', al_fish:'рыба',
+ pay_title:'Оплата по табельному номеру', pay_lead:'Завод оплачивает питание в пределах суточной дотации. Если заказ дороже, разницу вы доплачиваете сами.',
+ step1_t:'Войдите по табельному номеру и PIN-коду', step1_d:'Сайт покажет, сколько дотации доступно сегодня, вместе с перенесённым остатком.',
+ step2_t:'Соберите заказ', step2_d:'Сумма в пределах дотации списывается автоматически. То, что сверх лимита, можно доплатить через Kaspi QR, картой или удержанием из зарплаты.',
+ step3_t:'Получите заказ по коду', step3_d:'Назовите четырёхзначный код выдачи на раздаче или в магазине на проходной.',
+ limits_title:'Суточная дотация', shift_std_long:'Смена 8 часов и менее', shift_ext_long:'Смена более 8 часов',
+ carry_note:'Неиспользованная дотация переносится на следующий день и действует до конца месяца.',
+ del_title:'Доставка на центральную проходную', del_lead:'Заказ привезут в магазин на центральной проходной. Удобно, если смена заканчивается поздно или вы не успеваете в столовую.',
+ del_slots_today:'Время выдачи сегодня', del_slots_hint:'Приём заказов на каждое время закрывается за 60 минут. Выбрать время можно в корзине.',
+ slot_open:'приём открыт', slot_closed:'приём закрыт',
+ del_fee:'Стоимость доставки', free:'Бесплатно', del_min:'Минимальная сумма заказа', del_cutoff:'Приём заказа', del_cutoff_v:'до {n} минут до выдачи',
+ del_storage:'Хранение заказа', del_storage_v:'{n} часа после времени выдачи', del_shop_hours:'Магазин работает', all_day:'Круглосуточно',
+ sched_title:'Режим работы', sched_lead:'Время указано по Алматы (UTC+5). Статус обновляется автоматически.',
+ open_until:'Открыто до {t}', closed_opens:'Закрыто, откроется {w}', w_today:'сегодня в {t}', w_tomorrow:'завтра в {t}', w_day:'в {d} в {t}',
+ open_allday:'Открыто круглосуточно', day_off:'выходной', breaks:'Перерыв', phone:'Телефон',
+ map_title:'Как найти столовые', map_lead:'Нажмите на метку, чтобы увидеть часы работы и открыть меню нужной столовой.',
+ map_fail:'Карта не загрузилась. Проверьте подключение к интернету: адреса столовых есть в списке рядом.',
+ see_menu:'Смотреть меню', shop_pop:'Здесь выдают заказы с доставкой',
+ footer_desc:'Онлайн-меню заводских столовых', footer_phone_label:'Справочная столовых', footer_rules:'Правила пользования',
+ cart_for:'{c}, {d}', cart_empty_t:'В корзине пока пусто', cart_empty_d:'Выберите блюда в меню, и они появятся здесь.', to_menu:'Перейти к меню',
+ remove:'Удалить', order_nutr:'Пищевая ценность заказа', how_get:'Как получить', in_canteen:'В столовой', at_gate:'На центральной проходной',
+ pick_time:'Время выдачи', choose_time:'Выберите время', no_slots:'На сегодня свободного времени нет. Выберите доставку на проходную или закажите на завтра.',
+ closed_day:'В этот день столовая не работает. Выберите другую дату или доставку.',
+ del_min_msg:'Для доставки нужен заказ от {s}. Добавьте блюд ещё на {l}.',
+ comment:'Комментарий к заказу', comment_ph:'Например: без лука',
+ sum:'Сумма заказа', delivery:'Доставка', covered:'Покрывается дотацией', extra:'К доплате',
+ login_hint:'Войдите по табельному номеру, чтобы увидеть доступную дотацию и оформить заказ.',
+ pay_method:'Способ доплаты', pm_kaspi:'Kaspi QR', pm_card:'Банковская карта', pm_salary:'Удержание из заработной платы', pm_salary_d:'Сумма будет удержана при ближайшем расчёте',
+ checkout:'Оформить заказ', checkout_pay:'Оплатить {s} и оформить', checkout_login:'Войти и оформить', processing:'Оформляем…',
+ err_time:'Выберите время выдачи.', err_pm:'Выберите способ доплаты.',
+ cart_switch:'В корзине блюда из другой столовой или на другую дату. Очистить корзину и добавить это блюдо?',
+ added:'«{n}» в корзине',
+ login_title:'Вход по табельному номеру', tab:'Табельный номер', pin:'PIN-код', login_btn:'Войти', checking:'Проверяем…', cancel:'Отмена',
+ demo_creds:'Демо-доступ: 100245 / 1111 (смена 8 ч), 200118 / 3333 (смена 12 ч), 200254 / 4444 (есть перенесённый остаток).',
+ err_tab:'Табельный номер состоит из 4–8 цифр.', err_pin:'PIN-код состоит из 4 цифр.', err_auth:'Неверный табельный номер или PIN-код. Проверьте данные и попробуйте снова.',
+ welcome:'Вы вошли как {n}',
+ subsidy:'Дотация', profile:'Профиль', tab_short:'Табельный №', category:'Категория', shift_std:'Смена до 8 ч', shift_ext:'Смена более 8 ч',
+ limit_today:'Лимит на сегодня', carried:'Перенесено', spent:'Потрачено сегодня', available:'Доступно сейчас',
+ valid_until:'Перенесённый остаток действует до {d}.', valid_none:'Перенесённый остаток действует без ограничения срока.',
+ demo_mode:'Демо-режим', simulate:'Симулировать следующий день', sim_done:'Наступил следующий день: перенесено {s}', sim_reset:'Новый месяц: перенесённый остаток обнулён',
+ logout:'Выйти', logged_out:'Вы вышли из профиля',
+ confirm_title:'Заказ оформлен', pickup_code:'Код выдачи', code_hint:'Назовите код при получении заказа.', order_no:'Номер заказа',
+ where:'Где забрать', when:'Когда', paid_sub:'Оплачено дотацией', paid_extra:'Доплачено', done:'Готово', today_l:'сегодня', tomorrow_l:'завтра'
+},
+kz:{
+ brand_sub:'Асханалар', nav_menu:'Мәзір', nav_payment:'Төлем', nav_delivery:'Жеткізу', nav_schedule:'Жұмыс уақыты', nav_map:'Карта',
+ login_long:'Табель нөмірімен кіру', login_short:'Кіру', cart:'Себет', close:'Жабу',
+ hero_title:'Зауыт асханаларындағы түскі ас: мәзір, баға және құрамы',
+ hero_lead:'Асхананы таңдап, тамақтану түрін белгілеңіз де, алдын ала тапсырыс беріңіз. Төлем дотация шегінде табель нөмірі арқылы жүргізіледі, тапсырысты асханадан немесе орталық өткізу пунктіндегі дүкеннен аласыз.',
+ cta_menu:'Мәзірді қарау', cta_pay:'Төлем қалай жүргізіледі',
+ board_title:'Бүгінгі кешенді түскі ас', board_closed_day:'Бүгін бұл асхана демалыста.',
+ menu_title:'Мәзір', menu_lead:'Бағалар теңгемен, тағамдық құндылығы бір порцияға көрсетілген. Құрамы мен аллергендерді көру үшін тағамды басыңыз.',
+ canteen:'Асхана', date:'Күні', today:'Бүгін', tomorrow:'Ертең', diet_type:'Тамақтану түрі',
+ f_standard:'Стандартты', f_diabetic:'Диабетиктерге', f_pp:'Дұрыс тамақтану',
+ tag_standard:'Стандарт', tag_diabetic:'Диабет', tag_pp:'ДТ',
+ search_ph:'Тағамды іздеу', sort:'Сұрыптау', sort_default:'Әдепкі', sort_price_asc:'Алдымен арзаны', sort_price_desc:'Алдымен қымбаты', sort_kcal:'Калориясы аз',
+ cat_all:'Барлығы', cat_salad:'Салаттар мен тіскебасарлар', cat_soup:'Бірінші тағамдар', cat_main:'Екінші тағамдар', cat_side:'Гарнирлер', cat_bakery:'Тоқаштар', cat_drink:'Сусындар', cat_combo:'Кешенді түскі ас',
+ dishes_n:'{n} тағам', add:'Себетке', unavailable:'Қолжетімсіз', gi:'ГИ {n}',
+ empty_t:'Бұл шарттар бойынша тағам жоқ', empty_d:'Көбірек тағам көру үшін сүзгілерді немесе іздеуді өзгертіңіз.', reset:'Сүзгілерді тазарту',
+ k_kcal:'ккал', k_p:'А', k_f:'М', k_c:'К', g:'г', ml:'мл',
+ n_kcal:'Калориясы', n_p:'Ақуыздар', n_f:'Майлар', n_c:'Көмірсулар', per_portion:'Порция', per_100:'100 {u}',
+ composition:'Құрамы', allergens:'Аллергендер', none:'жоқ', gi_full:'Гликемиялық индекс',
+ al_gluten:'глютен', al_egg:'жұмыртқа', al_milk:'сүт', al_fish:'балық',
+ pay_title:'Табель нөмірі арқылы төлеу', pay_lead:'Зауыт тамақты тәуліктік дотация шегінде төлейді. Тапсырыс қымбатырақ болса, айырмасын өзіңіз төлейсіз.',
+ step1_t:'Табель нөмірі мен PIN-код арқылы кіріңіз', step1_d:'Сайт ауыстырылған қалдықты қоса алғанда, бүгін қанша дотация бар екенін көрсетеді.',
+ step2_t:'Тапсырысты жинаңыз', step2_d:'Дотация шегіндегі сома автоматты түрде есептен шығарылады. Лимиттен асқан бөлігін Kaspi QR, карта арқылы немесе жалақыдан ұстап қалу арқылы төлейсіз.',
+ step3_t:'Тапсырысты код арқылы алыңыз', step3_d:'Төрт таңбалы беру кодын тарату орнында немесе өткізу пунктіндегі дүкенде айтыңыз.',
+ limits_title:'Тәуліктік дотация', shift_std_long:'8 сағат және одан аз ауысым', shift_ext_long:'8 сағаттан артық ауысым',
+ carry_note:'Пайдаланылмаған дотация келесі күнге ауыстырылады және ай соңына дейін жарамды.',
+ del_title:'Орталық өткізу пунктіне жеткізу', del_lead:'Тапсырысты орталық өткізу пунктіндегі дүкенге жеткізеді. Ауысым кеш аяқталса немесе асханаға үлгермесеңіз, ыңғайлы.',
+ del_slots_today:'Бүгінгі беру уақыты', del_slots_hint:'Әр уақытқа тапсырыс қабылдау 60 минут бұрын жабылады. Уақытты себетте таңдауға болады.',
+ slot_open:'қабылдау ашық', slot_closed:'қабылдау жабық',
+ del_fee:'Жеткізу құны', free:'Тегін', del_min:'Тапсырыстың ең аз сомасы', del_cutoff:'Тапсырыс қабылдау', del_cutoff_v:'беру уақытынан {n} минут бұрын дейін',
+ del_storage:'Тапсырысты сақтау', del_storage_v:'беру уақытынан кейін {n} сағат', del_shop_hours:'Дүкен жұмыс уақыты', all_day:'Тәулік бойы',
+ sched_title:'Жұмыс уақыты', sched_lead:'Уақыт Алматы бойынша (UTC+5). Мәртебе автоматты түрде жаңартылады.',
+ open_until:'{t} дейін ашық', closed_opens:'Жабық, ашылуы: {w}', w_today:'бүгін, {t}', w_tomorrow:'ертең, {t}', w_day:'{d}, {t}',
+ open_allday:'Тәулік бойы ашық', day_off:'демалыс', breaks:'Үзіліс', phone:'Телефон',
+ map_title:'Асханаларды қалай табуға болады', map_lead:'Жұмыс уақытын көру және қажетті асхананың мәзірін ашу үшін белгіні басыңыз.',
+ map_fail:'Карта жүктелмеді. Интернет байланысын тексеріңіз: асханалардың мекенжайлары қасындағы тізімде бар.',
+ see_menu:'Мәзірді қарау', shop_pop:'Мұнда жеткізілген тапсырыстар беріледі',
+ footer_desc:'Зауыт асханаларының онлайн мәзірі', footer_phone_label:'Асханалар анықтамалығы', footer_rules:'Пайдалану ережелері',
+ cart_for:'{c}, {d}', cart_empty_t:'Себет әлі бос', cart_empty_d:'Мәзірден тағам таңдаңыз, олар осында пайда болады.', to_menu:'Мәзірге өту',
+ remove:'Жою', order_nutr:'Тапсырыстың тағамдық құндылығы', how_get:'Қалай алу керек', in_canteen:'Асханада', at_gate:'Орталық өткізу пунктінде',
+ pick_time:'Беру уақыты', choose_time:'Уақытты таңдаңыз', no_slots:'Бүгінге бос уақыт жоқ. Өткізу пунктіне жеткізуді таңдаңыз немесе ертеңге тапсырыс беріңіз.',
+ closed_day:'Бұл күні асхана жұмыс істемейді. Басқа күнді немесе жеткізуді таңдаңыз.',
+ del_min_msg:'Жеткізу үшін тапсырыс {s} бастап болуы керек. Тағы {l} сомаға тағам қосыңыз.',
+ comment:'Тапсырысқа пікір', comment_ph:'Мысалы: пиязсыз',
+ sum:'Тапсырыс сомасы', delivery:'Жеткізу', covered:'Дотациямен өтеледі', extra:'Қосымша төлеу керек',
+ login_hint:'Қолжетімді дотацияны көру және тапсырыс беру үшін табель нөмірімен кіріңіз.',
+ pay_method:'Қосымша төлем тәсілі', pm_kaspi:'Kaspi QR', pm_card:'Банк картасы', pm_salary:'Жалақыдан ұстап қалу', pm_salary_d:'Сома жақын арадағы есеп айырысу кезінде ұсталады',
+ checkout:'Тапсырысты рәсімдеу', checkout_pay:'{s} төлеп, рәсімдеу', checkout_login:'Кіру және рәсімдеу', processing:'Рәсімделуде…',
+ err_time:'Беру уақытын таңдаңыз.', err_pm:'Қосымша төлем тәсілін таңдаңыз.',
+ cart_switch:'Себетте басқа асхананың немесе басқа күннің тағамдары бар. Себетті тазартып, осы тағамды қосу керек пе?',
+ added:'«{n}» себетте',
+ login_title:'Табель нөмірімен кіру', tab:'Табель нөмірі', pin:'PIN-код', login_btn:'Кіру', checking:'Тексерілуде…', cancel:'Болдырмау',
+ demo_creds:'Демо кіру: 100245 / 1111 (8 сағаттық ауысым), 200118 / 3333 (12 сағаттық ауысым), 200254 / 4444 (ауыстырылған қалдық бар).',
+ err_tab:'Табель нөмірі 4–8 цифрдан тұрады.', err_pin:'PIN-код 4 цифрдан тұрады.', err_auth:'Табель нөмірі немесе PIN-код қате. Деректерді тексеріп, қайта көріңіз.',
+ welcome:'Сіз {n} ретінде кірдіңіз',
+ subsidy:'Дотация', profile:'Профиль', tab_short:'Табель №', category:'Санат', shift_std:'8 сағатқа дейінгі ауысым', shift_ext:'8 сағаттан артық ауысым',
+ limit_today:'Бүгінгі лимит', carried:'Ауыстырылды', spent:'Бүгін жұмсалды', available:'Қазір қолжетімді',
+ valid_until:'Ауыстырылған қалдық {d} дейін жарамды.', valid_none:'Ауыстырылған қалдық мерзімсіз жарамды.',
+ demo_mode:'Демо режим', simulate:'Келесі күнді модельдеу', sim_done:'Келесі күн басталды: {s} ауыстырылды', sim_reset:'Жаңа ай: ауыстырылған қалдық нөлденді',
+ logout:'Шығу', logged_out:'Сіз профильден шықтыңыз',
+ confirm_title:'Тапсырыс рәсімделді', pickup_code:'Беру коды', code_hint:'Тапсырысты алған кезде кодты айтыңыз.', order_no:'Тапсырыс нөмірі',
+ where:'Қайдан алу керек', when:'Қашан', paid_sub:'Дотациямен төленді', paid_extra:'Қосымша төленді', done:'Дайын', today_l:'бүгін', tomorrow_l:'ертең'
+}};
+
+const WD = { ru:{full:['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'],short:['вс','пн','вт','ср','чт','пт','сб']},
+             kz:{full:['жексенбі','дүйсенбі','сейсенбі','сәрсенбі','бейсенбі','жұма','сенбі'],short:['жс','дс','сс','ср','бс','жм','сб']} };
+const MONTHS = { ru:['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'],
+                 kz:['қаңтар','ақпан','наурыз','сәуір','мамыр','маусым','шілде','тамыз','қыркүйек','қазан','қараша','желтоқсан'] };
+
+/* =========================================================
+   СОСТОЯНИЕ
+   ========================================================= */
+const S = { lang:'ru', canteen:'c1', day:0, filters:new Set(), search:'', sort:'default', cat:'all',
+  cart:{ key:null, canteen:null, day:0, items:{} }, pickup:'canteen', slot:'', payMethod:'', comment:'',
+  user:null, pendingCheckout:false, cartError:'' };
+
+/* =========================================================
+   УТИЛИТЫ
+   ========================================================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+function t(key, vars){ let s = (T[S.lang] && T[S.lang][key]) ?? T.ru[key] ?? key; if(vars) for(const k in vars) s = s.split('{'+k+'}').join(vars[k]); return s; }
+const nf = new Intl.NumberFormat('ru-RU');
+const money = n => nf.format(Math.round(n)).replace(/\s/g,'\u00a0') + '\u00a0' + CONFIG.currency;
+const num1 = n => (Math.round(n*10)/10).toString().replace('.', ',');
+const pad = n => String(n).padStart(2,'0');
+const fmtT = m => pad(Math.floor(m/60)%24)+':'+pad(m%60);
+// Время Алматы (UTC+5) — считаем вручную, чтобы не зависеть от версии tzdata в браузере
+function almaty(offsetDays=0){ const d = new Date(Date.now() + CONFIG.utcOffsetHours*3600e3); d.setUTCDate(d.getUTCDate()+offsetDays); return d; }
+const nowMin = () => { const d = almaty(); return d.getUTCHours()*60 + d.getUTCMinutes(); };
+const dow = (off=0) => almaty(off).getUTCDay();
+function dateLabel(off=0, withWd=true){
+  const d = almaty(off), L = S.lang;
+  const dm = d.getUTCDate()+' '+MONTHS[L][d.getUTCMonth()];
+  return withWd ? (L==='kz' ? dm+', '+WD[L].full[d.getUTCDay()] : WD[L].short[d.getUTCDay()]+', '+dm) : dm;
+}
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+function rng(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let x=Math.imul(seed^seed>>>15,1|seed); x=x+Math.imul(x^x>>>7,61|x)^x; return ((x^x>>>14)>>>0)/4294967296; }; }
+function shuffle(arr, r){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+const delay = ms => new Promise(r => setTimeout(r, ms));
+let toastTimer;
+function toast(msg){ const el=$('#toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2600); }
+const canteenById = id => CANTEENS.find(c=>c.id===id);
+
+/* =========================================================
+   API (МОК). Здесь подключается реальный бэкенд.
+   ========================================================= */
+const api = {
+  // TODO: заменить на POST /api/auth  { tabNumber, pin } → { employee, token }
+  async login(tabNumber, pin){
+    await delay(400 + Math.random()*400);
+    const e = EMPLOYEES.find(x => x.tabNumber===tabNumber && x.pin===pin);
+    if(!e) throw new Error('auth');
+    return e;
+  },
+  // TODO: заменить на GET /api/employees/{tab}/subsidy (данные из HR / 1С)
+  async getEmployeeLimit(tabNumber){
+    await delay(300);
+    const e = EMPLOYEES.find(x=>x.tabNumber===tabNumber);
+    return { limit: limitOf(e), carriedOver: e.carriedOver, spentToday: e.spentToday, available: availOf(e) };
+  },
+  // TODO: заменить на POST /api/orders
+  async createOrder(order){
+    await delay(500 + Math.random()*300);
+    return { ...order, id: 'З-' + almaty().getUTCFullYear() + '-' + String(Math.floor(10000+Math.random()*89999)), code: String(Math.floor(1000+Math.random()*9000)) };
+  },
+  // TODO: заменить на эквайринг (Kaspi Pay / банк) или передачу удержания в расчёт зарплаты
+  async payExtra(orderId, method){ await delay(600); return { ok:true, orderId, method }; }
+};
+
+/* =========================================================
+   ДОТАЦИЯ
+   ========================================================= */
+const categoryOf = u => u.shiftHours > CONFIG.subsidy.thresholdHours ? 'extended' : 'standard';
+const limitOf = u => CONFIG.subsidy.dailyLimit[categoryOf(u)];
+const availOf = u => Math.max(0, u.carriedOver + limitOf(u) - u.spentToday);
+function deduct(u, amount){ // сначала перенесённый остаток, затем лимит текущих суток
+  const fromCarry = Math.min(u.carriedOver, amount);
+  u.carriedOver -= fromCarry; u.spentToday += amount - fromCarry;
+}
+function nextDay(u){
+  u.simOffset = (u.simOffset||0) + 1;
+  u.carriedOver = CONFIG.subsidy.carryOver ? availOf(u) : 0;
+  u.spentToday = 0;
+  if(CONFIG.subsidy.carryOverReset==='month' && almaty(u.simOffset).getUTCDate()===1){ u.carriedOver = 0; return 'reset'; }
+  return 'ok';
+}
+function resetDateLabel(u){
+  const d = almaty(u.simOffset||0);
+  const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth()+1, 0));
+  return last.getUTCDate()+' '+MONTHS[S.lang][last.getUTCMonth()];
+}
+
+/* =========================================================
+   МЕНЮ
+   ========================================================= */
+const MENU_CACHE = {};
+function menuFor(cid, day){
+  const key = cid+'|'+day; if(MENU_CACHE[key]) return MENU_CACHE[key];
+  const d = almaty(day); const dateSeed = d.getUTCFullYear()*1000 + d.getUTCMonth()*40 + d.getUTCDate();
+  const ci = CANTEENS.findIndex(c=>c.id===cid);
+  const r = rng(dateSeed*7 + ci*131 + 17);
+  const list = [];
+  CATS.forEach(cat => {
+    const items = DISHES.filter(x=>x.cat===cat);
+    const drop = items.length > 4 ? Math.floor(items.length*0.2) : 0;
+    const dropped = new Set(shuffle(items.map(x=>x.id), r).slice(0, drop));
+    items.forEach(x => { if(!dropped.has(x.id)) list.push(x); });
+  });
+  const unav = new Set(shuffle(list.filter(x=>x.cat!=='combo').map(x=>x.id), r).slice(0,2));
+  return MENU_CACHE[key] = list.map(x => ({ ...x, available: !unav.has(x.id) }));
+}
+function filtered(){
+  let list = menuFor(S.canteen, S.day);
+  if(S.filters.size) list = list.filter(d => d.tags.some(tg => S.filters.has(tg)));
+  const q = S.search.trim().toLowerCase();
+  if(q) list = list.filter(d => d.name.ru.toLowerCase().includes(q) || d.name.kz.toLowerCase().includes(q));
+  const arr = list.slice();
+  if(S.sort==='price_asc') arr.sort((a,b)=>a.price-b.price);
+  if(S.sort==='price_desc') arr.sort((a,b)=>b.price-a.price);
+  if(S.sort==='kcal') arr.sort((a,b)=>a.kbju.kcal-b.kbju.kcal);
+  return arr;
+}
+
+/* =========================================================
+   ИКОНКИ И ЛОГОТИП
+   ========================================================= */
+const CAT_BG = { salad:'#D4E8DA', soup:'#F0E2D6', main:'#DCE4EC', side:'#ECE6D6', bakery:'#F1DFD3', drink:'#DDE9EE', combo:'#DAD4EA' };
+const ICON = {
+  salad:'<path d="M3 11h18a9 9 0 0 1-18 0Z"/><path d="M12 11c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6Z"/><path d="M9 11C9 8.5 7.5 7 5 7c0 2.5 1.5 4 4 4Z"/>',
+  soup:'<path d="M3 12h18a9 9 0 0 1-18 0Z"/><path d="M9 3c-1 1.5 1 2.5 0 4.5M13 3c-1 1.5 1 2.5 0 4.5M17 3c-1 1.5 1 2.5 0 4.5"/>',
+  main:'<circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="8.5"/>',
+  side:'<path d="M3 12h18a9 9 0 0 1-18 0Z"/><circle cx="8" cy="9.5" r=".8"/><circle cx="12" cy="8.5" r=".8"/><circle cx="16" cy="9.5" r=".8"/><circle cx="10" cy="6.5" r=".8"/><circle cx="14" cy="6.5" r=".8"/>',
+  bakery:'<path d="M4 11a8 5 0 0 1 16 0v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/><path d="M9 9.5l-1 3M13 9l-1 3M17 9.5l-1 3"/>',
+  drink:'<path d="M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5Z"/><path d="M17 10h1.5a2 2 0 0 1 0 4H17"/><path d="M9 3.5v2M13 3.5v2"/>',
+  combo:'<path d="M2.5 17.5h19"/><path d="M4.5 17.5a7.5 7.5 0 0 1 15 0"/><path d="M12 8v2"/><circle cx="12" cy="7" r="1"/>'
+};
+const icon = cat => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[cat]}</svg>`;
+// Логотип: тарелка с прибором внутри шестерёнки. Компонент заменяется логотипом заказчика.
+function logoSVG(size=40){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Логотип">
+    <circle cx="20" cy="20" r="17.2" fill="none" stroke="#7A93AC" stroke-width="4" stroke-dasharray="4.6 8.9" transform="rotate(-8 20 20)"/>
+    <circle cx="20" cy="20" r="14" fill="#DCE4EC" stroke="#56708A" stroke-width="2"/>
+    <circle cx="20" cy="20" r="8.6" fill="#fff" stroke="#A8BFA3" stroke-width="1.6"/>
+    <path d="M15.6 12.5v5.2a1.6 1.6 0 0 0 3.2 0v-5.2M17.2 12.5v15" fill="none" stroke="#2E3338" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M24.4 27.5v-15c-2 1.2-2.6 4.2-2.6 7.2h2.6" fill="none" stroke="#2E3338" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+/* =========================================================
+   РЕНДЕР: ОБЩЕЕ
+   ========================================================= */
+function applyI18n(){
+  document.documentElement.lang = S.lang==='kz' ? 'kk' : 'ru';
+  document.title = CONFIG.factoryName + ' — ' + t('brand_sub');
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
+  document.querySelectorAll('.js-factory').forEach(el => el.textContent = CONFIG.factoryName);
+  document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang===S.lang)));
+}
+function renderAll(){
+  applyI18n(); renderHero(); renderHeader(); renderMenuControls(); renderMenu();
+  renderPayment(); renderDelivery(); renderSchedule(); renderPlaces(); renderMarkers();
+  if($('#cartDlg').open) renderCart();
+}
+function cartCount(){ return Object.values(S.cart.items).reduce((s,i)=>s+i.qty,0); }
+function cartTotal(){ return Object.values(S.cart.items).reduce((s,i)=>s+i.qty*i.dish.price,0); }
+
+function renderHeader(){
+  const n = cartCount(), c = $('#cartCount');
+  c.hidden = n===0; c.textContent = n;
+  const fab = $('#fab'); fab.classList.toggle('show', n>0); $('#fabSum').textContent = n ? n+' · '+money(cartTotal()) : '';
+  const slot = $('#userSlot');
+  if(S.user){
+    slot.innerHTML = `<button type="button" class="user-chip" id="userChip"><b>${esc(S.user.name[S.lang])}</b><span class="num">${t('subsidy')}: ${money(availOf(S.user))}</span></button>`;
+    $('#userChip').onclick = openProfile;
+  } else {
+    slot.innerHTML = `<button type="button" class="btn btn-ghost btn-login" id="loginBtn"><span class="login-long">${t('login_long')}</span><span class="login-short">${t('login_short')}</span></button>`;
+    $('#loginBtn').onclick = () => openLogin();
+  }
+}
+
+function statusOf(place){
+  if(place.allDay) return { open:true, text:t('open_allday') };
+  const m = nowMin(), h = place.hours[dow(0)];
+  if(h && m>=h[0] && m<h[1]) return { open:true, text:t('open_until',{t:fmtT(h[1])}) };
+  if(h && m<h[0]) return { open:false, text:t('closed_opens',{w:t('w_today',{t:fmtT(h[0])})}) };
+  for(let i=1;i<=7;i++){
+    const hh = place.hours[dow(i)];
+    if(hh) return { open:false, text:t('closed_opens',{w: i===1 ? t('w_tomorrow',{t:fmtT(hh[0])}) : t('w_day',{d:WD[S.lang].short[dow(i)],t:fmtT(hh[0])})}) };
+  }
+  return { open:false, text:t('day_off') };
+}
+const pill = st => `<span class="pill ${st.open?'pill-open':'pill-closed'}">${esc(st.text)}</span>`;
+
+function renderHero(){
+  const d = almaty();
+  $('#heroWeekday').textContent = cap(WD[S.lang].full[d.getUTCDay()]);
+  $('#heroDate').textContent = dateLabel(0,false);
+  const c = canteenById(S.canteen);
+  $('#boardSub').textContent = c.name[S.lang] + ', ' + c.location[S.lang];
+  const combos = menuFor(S.canteen,0).filter(x=>x.cat==='combo');
+  $('#boardRows').innerHTML = c.hours[dow(0)] ? combos.map(x=>`<div class="board-row"><div><b>${esc(x.name[S.lang])}</b><small>${esc(x.composition[S.lang])}</small></div><span class="price">${money(x.price)}</span></div>`).join('')
+    : `<div class="board-row"><div><small>${t('board_closed_day')}</small></div></div>`;
+  $('#boardStatus').innerHTML = [...CANTEENS, SHOP].map(p => `<div><span>${esc(p.name[S.lang])}</span>${pill(statusOf(p))}</div>`).join('');
+}
+
+/* =========================================================
+   РЕНДЕР: МЕНЮ
+   ========================================================= */
+function renderMenuControls(){
+  $('#canteenSeg').innerHTML = CANTEENS.map(c=>`<button type="button" data-canteen="${c.id}" aria-pressed="${c.id===S.canteen}">${esc(c.name[S.lang])}</button>`).join('');
+  $('#daySeg').innerHTML = [0,1].map(d=>`<button type="button" data-day="${d}" aria-pressed="${d===S.day}">${d===0?t('today'):t('tomorrow')}, ${esc(dateLabel(d,false))}</button>`).join('');
+  const F = [['standard','f_standard','var(--tag-std)'],['diabetic','f_diabetic','var(--tag-dia)'],['pp','f_pp','var(--tag-pp)']];
+  $('#filterChips').innerHTML = F.map(([k,l,c])=>`<button type="button" class="chip" data-filter="${k}" aria-pressed="${S.filters.has(k)}" style="--chip-bg:${c}"><span class="dot" style="background:${c}"></span>${t(l)}</button>`).join('');
+  $('#sort').value = S.sort;
+}
+function kbjuHTML(k){
+  return `<div class="kbju"><div><b>${k.kcal}</b><span>${t('k_kcal')}</span></div><div><b>${num1(k.protein)}</b><span>${t('k_p')}, ${t('g')}</span></div><div><b>${num1(k.fat)}</b><span>${t('k_f')}, ${t('g')}</span></div><div><b>${num1(k.carbs)}</b><span>${t('k_c')}, ${t('g')}</span></div></div>`;
+}
+const tagHTML = d => d.tags.map(tg=>`<span class="tag t-${tg[0]}">${t('tag_'+tg)}</span>`).join('');
+function qtyInCart(id){ return (S.cart.key===S.canteen+'|'+S.day && S.cart.items[id]) ? S.cart.items[id].qty : 0; }
+function cardFooter(d){
+  if(!d.available) return `<button type="button" class="btn btn-ghost btn-block" disabled>${t('unavailable')}</button>`;
+  const q = qtyInCart(d.id);
+  if(!q) return `<button type="button" class="btn btn-ghost btn-block" data-act="add" data-id="${d.id}">${t('add')}</button>`;
+  return `<div class="qty"><button type="button" data-act="dec" data-id="${d.id}" aria-label="−">−</button><output class="num" aria-live="polite">${q}</output><button type="button" data-act="inc" data-id="${d.id}" aria-label="+">+</button></div>`;
+}
+function cardHTML(d){
+  const w = d.weight + '\u00a0' + t(d.unit);
+  return `<article class="card${d.available?'':' off'}">
+    <button type="button" class="card-img" style="background:${CAT_BG[d.cat]}" data-act="open" data-id="${d.id}" aria-label="${esc(d.name[S.lang])}">${icon(d.cat)}
+      ${d.glycemicIndex?`<span class="gi">${t('gi',{n:d.glycemicIndex})}</span>`:''}${d.available?'':`<span class="na">${t('unavailable')}</span>`}</button>
+    <div class="card-b">
+      <button type="button" class="card-t" data-act="open" data-id="${d.id}">${esc(d.name[S.lang])}</button>
+      <div class="meta"><span class="price">${money(d.price)}</span><span class="weight num">${w}</span></div>
+      ${kbjuHTML(d.kbju)}
+      <div class="tags">${tagHTML(d)}</div>
+      <div class="card-f">${cardFooter(d)}</div>
+    </div></article>`;
+}
+function renderMenu(){
+  const list = filtered();
+  const counts = {}; CATS.forEach(c=>counts[c]=list.filter(d=>d.cat===c).length);
+  const tabs = ['all',...CATS];
+  $('#catTabs').innerHTML = tabs.map(c=>`<button type="button" role="tab" data-cat="${c}" aria-selected="${c===S.cat}">${t('cat_'+c)}<span class="cnt num">${c==='all'?list.length:counts[c]}</span></button>`).join('');
+  const grid = $('#menuGrid');
+  const c = canteenById(S.canteen);
+  const closedNote = !c.hours[dow(S.day)] ? `<p class="info-msg" style="margin:0 0 24px">${t('closed_day')}</p>` : '';
+  const cats = S.cat==='all' ? CATS : [S.cat];
+  const groups = cats.map(cat => {
+    const items = list.filter(d=>d.cat===cat); if(!items.length) return '';
+    return `<section class="group"><div class="group-h"><h3>${t('cat_'+cat)}</h3><span>${t('dishes_n',{n:items.length})}</span></div><div class="grid">${items.map(cardHTML).join('')}</div></section>`;
+  }).join('');
+  grid.innerHTML = closedNote + (groups || `<div class="empty"><b>${t('empty_t')}</b><p>${t('empty_d')}</p><button type="button" class="btn btn-ghost" id="resetF">${t('reset')}</button></div>`);
+  const rb = $('#resetF'); if(rb) rb.onclick = () => { S.filters.clear(); S.search=''; $('#search').value=''; S.cat='all'; renderMenuControls(); renderMenu(); };
+}
+function refocus(act, id){
+  const el = document.querySelector(`#menuGrid [data-act="${act}"][data-id="${id}"]`) || document.querySelector(`#menuGrid [data-act="inc"][data-id="${id}"]`) || document.querySelector(`#menuGrid [data-act="add"][data-id="${id}"]`);
+  if(el) el.focus({preventScroll:true});
+}
+function findDish(id){ return menuFor(S.canteen,S.day).find(d=>d.id===id); }
+
+function addToCart(dish){
+  const key = S.canteen+'|'+S.day;
+  if(S.cart.key && S.cart.key!==key && cartCount()>0){
+    if(!confirm(t('cart_switch'))) return false;
+    S.cart.items = {}; S.slot='';
+  }
+  if(S.cart.key!==key){ S.cart.key=key; S.cart.canteen=S.canteen; S.cart.day=S.day; S.slot=''; }
+  const it = S.cart.items[dish.id];
+  if(it) it.qty++; else S.cart.items[dish.id] = { dish, qty:1 };
+  return true;
+}
+function changeQty(id, delta){
+  const it = S.cart.items[id]; if(!it) return;
+  it.qty += delta; if(it.qty<=0) delete S.cart.items[id];
+  if(cartCount()===0){ S.cart.key=null; S.slot=''; }
+}
+
+/* =========================================================
+   РЕНДЕР: ОПЛАТА, ДОСТАВКА, РЕЖИМ, КАРТА
+   ========================================================= */
+function renderPayment(){ $('#limStd').textContent = money(CONFIG.subsidy.dailyLimit.standard); $('#limExt').textContent = money(CONFIG.subsidy.dailyLimit.extended); }
+function slotOpen(slot, day){ return day>0 || toMin(slot) - CONFIG.delivery.cutoffMinutes > nowMin(); }
+function renderDelivery(){
+  $('#delSlotsView').innerHTML = CONFIG.delivery.slots.map(s => { const o = slotOpen(s,0);
+    return `<div class="slot${o?'':' closed'}"><b class="num">${s}</b><small>${o?t('slot_open'):t('slot_closed')}</small></div>`; }).join('');
+  const D = CONFIG.delivery;
+  $('#delFacts').innerHTML = [
+    [t('del_fee'), D.fee ? money(D.fee) : t('free')],
+    [t('del_min'), money(D.minOrder)],
+    [t('del_cutoff'), t('del_cutoff_v',{n:D.cutoffMinutes})],
+    [t('del_storage'), t('del_storage_v',{n:D.storageHours})],
+    [t('del_shop_hours'), t('all_day')]
+  ].map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('');
+}
+function hoursRows(place){
+  const order = [1,2,3,4,5,6,0], rows = [];
+  order.forEach(i => {
+    const h = place.hours[i], v = h ? fmtT(h[0])+'–'+fmtT(h[1]) : t('day_off'), last = rows[rows.length-1];
+    if(last && last.v===v) last.to=i; else rows.push({from:i,to:i,v});
+  });
+  return rows.map(r => `<tr><td>${cap(WD[S.lang].short[r.from])}${r.to!==r.from?'–'+WD[S.lang].short[r.to]:''}</td><td class="num">${r.v}</td></tr>`).join('');
+}
+function renderSchedule(){
+  const cards = CANTEENS.map(c => `<article class="sc"><div><h3>${esc(c.name[S.lang])}</h3><p class="loc">${esc(c.location[S.lang])}</p></div>
+    <div>${pill(statusOf(c))}</div><table>${hoursRows(c)}</table>
+    ${c.breaks.length?`<p class="extra">${t('breaks')}: ${c.breaks.join(', ')}</p>`:''}
+    <p class="extra">${t('phone')}: <a href="tel:${c.phone.replace(/[^\d+]/g,'')}">${c.phone}</a></p></article>`);
+  cards.push(`<article class="sc shop"><div><h3>${esc(SHOP.name[S.lang])}</h3><p class="loc">${esc(SHOP.location[S.lang])}</p></div>
+    <div>${pill(statusOf(SHOP))}</div><table><tr><td>${cap(WD[S.lang].short[1])}–${WD[S.lang].short[0]}</td><td>${t('all_day')}</td></tr></table>
+    <p class="extra">${t('shop_pop')}</p><p class="extra">${t('phone')}: <a href="tel:${SHOP.phone.replace(/[^\d+]/g,'')}">${SHOP.phone}</a></p></article>`);
+  $('#schedGrid').innerHTML = cards.join('');
+}
+function renderPlaces(){
+  $('#placesList').innerHTML = CANTEENS.map((c,i)=>`<li><span class="n">${i+1}</span><div><b>${esc(c.name[S.lang])}</b><span>${esc(c.location[S.lang])}</span><span style="margin-top:6px">${pill(statusOf(c))}</span><button type="button" class="link" data-goto="${c.id}">${t('see_menu')}</button></div></li>`).join('')
+    + `<li><span class="n s">П</span><div><b>${esc(SHOP.name[S.lang])}</b><span>${esc(SHOP.location[S.lang])}</span><span style="margin-top:6px">${pill(statusOf(SHOP))}</span></div></li>`;
+}
+let map=null, markersLayer=null;
+function initMap(){
+  const el = $('#map');
+  if(!window.L){ el.innerHTML = `<div class="map-fallback">${t('map_fail')}</div>`; return; }
+  map = L.map(el, { scrollWheelZoom:false }).setView(CONFIG.mapCenter, 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
+  markersLayer = L.layerGroup().addTo(map);
+  renderMarkers();
+  map.fitBounds(L.latLngBounds([...CANTEENS.map(c=>c.coords), SHOP.coords]).pad(0.25));
+}
+function renderMarkers(){
+  if(!map) return;
+  markersLayer.clearLayers();
+  CANTEENS.forEach((c,i) => {
+    const ic = L.divIcon({ className:'', html:`<div class="mk-pin">${i+1}</div>`, iconSize:[32,32], iconAnchor:[16,16], popupAnchor:[0,-14] });
+    L.marker(c.coords, { icon:ic, title:c.name[S.lang], keyboard:true }).bindPopup(() =>
+      `<b>${esc(c.name[S.lang])}</b><br>${esc(c.location[S.lang])}<div style="margin:8px 0 2px">${pill(statusOf(c))}</div><button type="button" class="pop-btn" data-goto="${c.id}">${t('see_menu')}</button>`).addTo(markersLayer);
+  });
+  const si = L.divIcon({ className:'', html:'<div class="mk-pin s">П</div>', iconSize:[32,32], iconAnchor:[16,16], popupAnchor:[0,-14] });
+  L.marker(SHOP.coords, { icon:si, title:SHOP.name[S.lang], keyboard:true }).bindPopup(() =>
+    `<b>${esc(SHOP.name[S.lang])}</b><br>${esc(SHOP.location[S.lang])}<div style="margin:8px 0 2px">${pill(statusOf(SHOP))}</div>${t('shop_pop')}`).addTo(markersLayer);
+}
+
+/* =========================================================
+   КОРЗИНА
+   ========================================================= */
+function canteenSlots(cid, day){
+  const h = canteenById(cid).hours[dow(day)]; if(!h) return null;
+  let start = h[0];
+  if(day===0){ const m = nowMin()+15; start = Math.max(start, Math.ceil(m/15)*15); }
+  const out = []; for(let x=start; x<=h[1]-15; x+=15) out.push(fmtT(x));
+  return out;
+}
+function calc(){
+  const total = cartTotal();
+  const fee = S.pickup==='gate' ? CONFIG.delivery.fee : 0;
+  const grand = total + fee;
+  const avail = S.user ? availOf(S.user) : 0;
+  const subsidy = S.user ? Math.min(grand, avail) : 0;
+  return { total, fee, grand, subsidy, extra: grand - subsidy, avail };
+}
+function renderCart(){
+  const body = $('#cartBody'), foot = $('#cartFoot'), items = Object.values(S.cart.items);
+  if(!items.length){
+    $('#cartSub').textContent = '';
+    body.innerHTML = `<div class="empty" style="margin-top:20px"><b>${t('cart_empty_t')}</b><p>${t('cart_empty_d')}</p><button type="button" class="btn btn-ghost" id="toMenu">${t('to_menu')}</button></div>`;
+    foot.innerHTML = ''; foot.hidden = true;
+    $('#toMenu').onclick = () => { $('#cartDlg').close(); location.hash = '#menu'; };
+    return;
+  }
+  foot.hidden = false;
+  const c = canteenById(S.cart.canteen);
+  $('#cartSub').textContent = t('cart_for',{c:c.name[S.lang], d:(S.cart.day===0?t('today'):t('tomorrow'))+', '+dateLabel(S.cart.day,false)});
+  const k = items.reduce((a,i)=>({kcal:a.kcal+i.dish.kbju.kcal*i.qty,protein:a.protein+i.dish.kbju.protein*i.qty,fat:a.fat+i.dish.kbju.fat*i.qty,carbs:a.carbs+i.dish.kbju.carbs*i.qty}),{kcal:0,protein:0,fat:0,carbs:0});
+  const r = calc();
+  let html = items.map(i=>`<div class="ci"><div><b>${esc(i.dish.name[S.lang])}</b><br><small class="num">${i.dish.weight}\u00a0${t(i.dish.unit)}, ${money(i.dish.price)}</small></div>
+    <b class="num">${money(i.dish.price*i.qty)}</b>
+    <button type="button" class="rm" data-cact="rm" data-id="${i.dish.id}">${t('remove')}</button>
+    <div class="qty"><button type="button" data-cact="dec" data-id="${i.dish.id}" aria-label="−">−</button><output class="num">${i.qty}</output><button type="button" data-cact="inc" data-id="${i.dish.id}" aria-label="+">+</button></div></div>`).join('');
+  html += `<div class="blk"><h3>${t('order_nutr')}</h3>${kbjuHTML({kcal:Math.round(k.kcal),protein:k.protein,fat:k.fat,carbs:k.carbs})}</div>`;
+  // способ получения
+  html += `<div class="blk"><h3>${t('how_get')}</h3>
+    <label class="radio"><input type="radio" name="pickup" value="canteen" ${S.pickup==='canteen'?'checked':''}><span>${t('in_canteen')}<small>${esc(c.name[S.lang])}, ${esc(c.location[S.lang])}</small></span></label>
+    <label class="radio"><input type="radio" name="pickup" value="gate" ${S.pickup==='gate'?'checked':''}><span>${t('at_gate')}<small>${esc(SHOP.name[S.lang])}, ${CONFIG.delivery.fee?money(CONFIG.delivery.fee):t('free').toLowerCase()}</small></span></label>`;
+  html += `<h3 style="margin-top:16px">${t('pick_time')}</h3>`;
+  if(S.pickup==='canteen'){
+    const sl = canteenSlots(S.cart.canteen, S.cart.day);
+    if(sl===null) html += `<p class="info-msg">${t('closed_day')}</p>`;
+    else if(!sl.length) html += `<p class="info-msg">${t('no_slots')}</p>`;
+    else html += `<label class="sr" for="slotSel">${t('pick_time')}</label><select id="slotSel" style="width:100%"><option value="">${t('choose_time')}</option>${sl.map(s=>`<option ${s===S.slot?'selected':''}>${s}</option>`).join('')}</select>`;
+  } else {
+    html += `<div class="slots">${CONFIG.delivery.slots.map(s=>{const o=slotOpen(s,S.cart.day);return `<button type="button" class="slot${o?'':' closed'}" data-slot="${s}" aria-pressed="${S.slot===s}" ${o?'':'disabled'}><b class="num">${s}</b><small>${o?t('slot_open'):t('slot_closed')}</small></button>`;}).join('')}</div>`;
+    if(r.total < CONFIG.delivery.minOrder) html += `<p class="err-msg">${t('del_min_msg',{s:money(CONFIG.delivery.minOrder), l:money(CONFIG.delivery.minOrder-r.total)})}</p>`;
+  }
+  html += `</div><div class="blk" style="border-bottom:0"><label for="cmt"><h3>${t('comment')}</h3></label><textarea id="cmt" maxlength="200" placeholder="${esc(t('comment_ph'))}">${esc(S.comment)}</textarea></div>`;
+  body.innerHTML = html;
+  // футер с расчётом
+  let f = `<div class="kv"><span>${t('sum')}</span><b class="num">${money(r.total)}</b></div>`;
+  if(S.pickup==='gate') f += `<div class="kv"><span>${t('delivery')}</span><b>${r.fee?money(r.fee):t('free')}</b></div>`;
+  if(S.user){
+    f += `<div class="kv"><span>${t('covered')}</span><b class="num">−${money(r.subsidy)}</b></div>`;
+    f += `<p class="fine" style="margin:2px 0 0">${t('limit_today')}: ${money(limitOf(S.user))}, ${t('carried').toLowerCase()}: ${money(S.user.carriedOver)}, ${t('available').toLowerCase()}: ${money(r.avail)}</p>`;
+    f += `<div class="kv big"><span>${t('extra')}</span><b class="num">${money(r.extra)}</b></div>`;
+    if(r.extra>0){
+      f += `<div style="margin-top:12px"><p style="font-weight:600;font-size:14px;margin:0 0 8px">${t('pay_method')}</p>
+        ${[['kaspi','pm_kaspi',''],['card','pm_card',''],['salary','pm_salary','pm_salary_d']].map(([v,l,d])=>`<label class="radio"><input type="radio" name="pm" value="${v}" ${S.payMethod===v?'checked':''}><span>${t(l)}${d?`<small>${t(d)}</small>`:''}</span></label>`).join('')}</div>`;
+    }
+    f += `<p class="fine">${t('carry_note')}</p>`;
+  } else {
+    f += `<p class="info-msg">${t('login_hint')}</p>`;
+  }
+  if(S.cartError) f += `<p class="err-msg" role="alert">${esc(S.cartError)}</p>`;
+  const blocked = S.pickup==='gate' && r.total < CONFIG.delivery.minOrder;
+  const label = !S.user ? t('checkout_login') : (r.extra>0 ? t('checkout_pay',{s:money(r.extra)}) : t('checkout'));
+  f += `<button type="button" class="btn btn-primary btn-block" id="checkoutBtn" style="margin-top:12px" ${blocked?'disabled':''}>${label}</button>`;
+  foot.innerHTML = f;
+}
+function openCart(){ S.cartError=''; renderCart(); const d=$('#cartDlg'); if(!d.open) d.showModal(); }
+
+async function checkout(){
+  if(!S.user){ S.pendingCheckout = true; openLogin(); return; }
+  const r = calc();
+  S.cartError = '';
+  if(!S.slot){ S.cartError = t('err_time'); renderCart(); return; }
+  if(S.pickup==='gate' && r.total < CONFIG.delivery.minOrder) return;
+  if(r.extra>0 && !S.payMethod){ S.cartError = t('err_pm'); renderCart(); return; }
+  const btn = $('#checkoutBtn'); btn.disabled = true; btn.textContent = t('processing');
+  const c = canteenById(S.cart.canteen);
+  const order = await api.createOrder({
+    tabNumber:S.user.tabNumber, canteenId:S.cart.canteen, day:S.cart.day,
+    items:Object.values(S.cart.items).map(i=>({id:i.dish.id, name:i.dish.name, qty:i.qty, price:i.dish.price})),
+    pickup:S.pickup, slot:S.slot, comment:S.comment, total:r.grand, subsidy:r.subsidy, extra:r.extra, payMethod:r.extra>0?S.payMethod:null });
+  if(r.extra>0) await api.payExtra(order.id, S.payMethod);
+  deduct(S.user, r.subsidy);
+  const place = S.pickup==='gate' ? SHOP.name[S.lang]+', '+SHOP.location[S.lang] : c.name[S.lang]+', '+c.location[S.lang];
+  const when = (S.cart.day===0?t('today_l'):t('tomorrow_l'))+', '+dateLabel(S.cart.day,false)+', '+S.slot;
+  $('#confirmBody').innerHTML = `<div class="modal-h"><h2 id="confirmTitle">${t('confirm_title')}</h2><button type="button" class="x" data-close aria-label="${t('close')}">✕</button></div>
+    <p style="margin:0;color:var(--muted);font-size:14px">${t('pickup_code')}</p>
+    <div class="code">${order.code}</div><p class="fine" style="text-align:center;margin:0 0 16px">${t('code_hint')}</p>
+    <div class="kv"><span>${t('order_no')}</span><b class="num">${order.id}</b></div>
+    <div class="kv"><span>${t('where')}</span><b style="text-align:right">${esc(place)}</b></div>
+    <div class="kv"><span>${t('when')}</span><b class="num">${esc(when)}</b></div>
+    <div style="margin:12px 0;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+    ${order.items.map(i=>`<div class="kv"><span>${esc(i.name[S.lang])} × ${i.qty}</span><b class="num">${money(i.price*i.qty)}</b></div>`).join('')}
+    ${order.comment?`<p class="fine">${t('comment')}: ${esc(order.comment)}</p>`:''}</div>
+    <div class="kv"><span>${t('paid_sub')}</span><b class="num">${money(order.subsidy)}</b></div>
+    <div class="kv"><span>${t('paid_extra')}</span><b class="num">${money(order.extra)}${order.extra?' ('+t('pm_'+order.payMethod)+')':''}</b></div>
+    <div class="kv big"><span>${t('available')}</span><b class="num">${money(availOf(S.user))}</b></div>
+    <button type="button" class="btn btn-primary btn-block" data-close style="margin-top:16px">${t('done')}</button>`;
+  S.cart = { key:null, canteen:null, day:0, items:{} }; S.slot=''; S.comment=''; S.payMethod='';
+  $('#cartDlg').close();
+  $('#confirmDlg').showModal();
+  renderHeader(); renderMenu();
+}
+
+/* =========================================================
+   ДИАЛОГИ: БЛЮДО, ВХОД, ПРОФИЛЬ
+   ========================================================= */
+function openDish(id){
+  const d = findDish(id); if(!d) return;
+  const u = t(d.unit);
+  const al = d.allergens.length ? d.allergens.map(a=>t('al_'+a)).join(', ') : t('none');
+  $('#dishBody').innerHTML = `<div class="modal-h"><h2 id="dishTitle">${esc(d.name[S.lang])}</h2><button type="button" class="x" data-close aria-label="${t('close')}">✕</button></div>
+    <div class="dish-hero" style="background:${CAT_BG[d.cat]}">${icon(d.cat)}</div>
+    <div class="meta" style="margin-bottom:10px"><span class="price">${money(d.price)}</span><span class="weight num">${d.weight}\u00a0${u}</span></div>
+    <div class="tags" style="margin-bottom:16px">${tagHTML(d)}</div>
+    <table class="nutr"><thead><tr><th></th><th>${t('per_portion')}</th><th>${t('per_100',{u})}</th></tr></thead><tbody>
+      <tr><td>${t('n_kcal')}, ${t('k_kcal')}</td><td class="num">${d.kbju.kcal}</td><td class="num">${d.per100.kcal}</td></tr>
+      <tr><td>${t('n_p')}, ${t('g')}</td><td class="num">${num1(d.kbju.protein)}</td><td class="num">${num1(d.per100.protein)}</td></tr>
+      <tr><td>${t('n_f')}, ${t('g')}</td><td class="num">${num1(d.kbju.fat)}</td><td class="num">${num1(d.per100.fat)}</td></tr>
+      <tr><td>${t('n_c')}, ${t('g')}</td><td class="num">${num1(d.kbju.carbs)}</td><td class="num">${num1(d.per100.carbs)}</td></tr>
+      ${d.glycemicIndex?`<tr><td>${t('gi_full')}</td><td class="num">${d.glycemicIndex}</td><td></td></tr>`:''}
+    </tbody></table>
+    <p style="margin:0 0 4px;font-weight:600">${t('composition')}</p><p style="margin:0 0 14px;color:var(--muted)">${esc(d.composition[S.lang])}</p>
+    <p style="margin:0 0 4px;font-weight:600">${t('allergens')}</p><p style="margin:0 0 20px;color:var(--muted)">${al}</p>
+    ${d.available?`<button type="button" class="btn btn-primary btn-block" id="dishAdd">${t('add')}</button>`:`<button type="button" class="btn btn-ghost btn-block" disabled>${t('unavailable')}</button>`}`;
+  const b = $('#dishAdd'); if(b) b.onclick = () => { if(addToCart(d)){ toast(t('added',{n:d.name[S.lang]})); renderHeader(); renderMenu(); } $('#dishDlg').close(); };
+  $('#dishDlg').showModal();
+}
+
+function openLogin(){
+  $('#loginBody').innerHTML = `<div class="modal-h"><h2 id="loginTitle">${t('login_title')}</h2><button type="button" class="x" data-close aria-label="${t('close')}">✕</button></div>
+    <p class="demo">${t('demo_creds')}</p>
+    <form id="loginForm" novalidate>
+      <div class="field"><label for="tabIn">${t('tab')}</label><input class="input num" id="tabIn" inputmode="numeric" autocomplete="username" maxlength="8"></div>
+      <div class="field"><label for="pinIn">${t('pin')}</label><input class="input num" id="pinIn" type="password" inputmode="numeric" autocomplete="current-password" maxlength="4"></div>
+      <div id="loginErr"></div>
+      <div style="display:flex;gap:10px;margin-top:8px"><button type="submit" class="btn btn-primary" id="loginSubmit" style="flex:1">${t('login_btn')}</button><button type="button" class="btn btn-ghost" data-close>${t('cancel')}</button></div>
+    </form>`;
+  const tabIn = $('#tabIn'), pinIn = $('#pinIn');
+  [tabIn,pinIn].forEach(i => i.addEventListener('input', () => { i.value = i.value.replace(/\D/g,''); }));
+  $('#loginForm').onsubmit = async e => {
+    e.preventDefault();
+    const err = $('#loginErr'), tab = tabIn.value, pin = pinIn.value;
+    if(!/^\d{4,8}$/.test(tab)){ err.innerHTML = `<p class="err-msg" role="alert">${t('err_tab')}</p>`; tabIn.focus(); return; }
+    if(!/^\d{4}$/.test(pin)){ err.innerHTML = `<p class="err-msg" role="alert">${t('err_pin')}</p>`; pinIn.focus(); return; }
+    const btn = $('#loginSubmit'); btn.disabled = true; btn.textContent = t('checking'); err.innerHTML='';
+    try{
+      S.user = await api.login(tab, pin);
+      $('#loginDlg').close(); renderHeader(); toast(t('welcome',{n:S.user.name[S.lang]}));
+      if(S.pendingCheckout){ S.pendingCheckout=false; openCart(); }
+      else if($('#cartDlg').open) renderCart();
+    }catch(_){
+      btn.disabled = false; btn.textContent = t('login_btn');
+      err.innerHTML = `<p class="err-msg" role="alert">${t('err_auth')}</p>`; pinIn.value=''; pinIn.focus();
+    }
+  };
+  $('#loginDlg').showModal(); tabIn.focus();
+}
+
+function renderProfile(){
+  const u = S.user;
+  $('#profileBody').innerHTML = `<div class="modal-h"><h2 id="profileTitle">${esc(u.name[S.lang])}</h2><button type="button" class="x" data-close aria-label="${t('close')}">✕</button></div>
+    <div class="kv"><span>${t('tab_short')}</span><b class="num">${u.tabNumber}</b></div>
+    <div class="kv"><span>${t('category')}</span><b>${categoryOf(u)==='extended'?t('shift_ext'):t('shift_std')}</b></div>
+    <div style="margin:12px 0;padding-top:12px;border-top:1px solid var(--line)">
+      <div class="kv"><span>${t('limit_today')}</span><b class="num">${money(limitOf(u))}</b></div>
+      <div class="kv"><span>${t('carried')}</span><b class="num">${money(u.carriedOver)}</b></div>
+      <div class="kv"><span>${t('spent')}</span><b class="num">${money(u.spentToday)}</b></div>
+      <div class="kv big"><span>${t('available')}</span><b class="num">${money(availOf(u))}</b></div>
+    </div>
+    <p class="note">${CONFIG.subsidy.carryOverReset==='month' ? t('valid_until',{d:resetDateLabel(u)}) : t('valid_none')}</p>
+    <div style="margin-top:20px;padding:14px;border:1px dashed var(--line);border-radius:var(--r-s)">
+      <p style="margin:0 0 10px;font-size:14px;font-weight:600">${t('demo_mode')}</p>
+      <button type="button" class="btn btn-ghost btn-block" id="simBtn">${t('simulate')}</button>
+    </div>
+    <button type="button" class="btn btn-ghost btn-block" id="logoutBtn" style="margin-top:12px">${t('logout')}</button>`;
+  $('#simBtn').onclick = () => { const carried = availOf(u); const res = nextDay(u); toast(res==='reset' ? t('sim_reset') : t('sim_done',{s:money(carried)})); renderProfile(); renderHeader(); };
+  $('#logoutBtn').onclick = () => { S.user=null; $('#profileDlg').close(); renderHeader(); toast(t('logged_out')); if($('#cartDlg').open) renderCart(); };
+}
+function openProfile(){ renderProfile(); $('#profileDlg').showModal(); }
+
+/* =========================================================
+   СОБЫТИЯ
+   ========================================================= */
+document.addEventListener('click', e => {
+  const close = e.target.closest('[data-close]'); if(close){ close.closest('dialog').close(); return; }
+  const go = e.target.closest('[data-goto]');
+  if(go){ S.canteen = go.dataset.goto; S.cat='all'; if(map) map.closePopup(); renderMenuControls(); renderMenu(); renderHero(); document.getElementById('menu').scrollIntoView(); }
+});
+// клик по подложке закрывает диалог
+document.querySelectorAll('dialog').forEach(d => d.addEventListener('click', e => { if(e.target===d) d.close(); }));
+document.querySelectorAll('[data-lang]').forEach(b => b.onclick = () => { S.lang = b.dataset.lang; renderAll(); if($('#profileDlg').open) renderProfile(); });
+$('#cartBtn').onclick = openCart; $('#fab').onclick = openCart;
+$('#canteenSeg').onclick = e => { const b=e.target.closest('[data-canteen]'); if(!b) return; S.canteen=b.dataset.canteen; renderMenuControls(); renderMenu(); renderHero(); };
+$('#daySeg').onclick = e => { const b=e.target.closest('[data-day]'); if(!b) return; S.day=+b.dataset.day; renderMenuControls(); renderMenu(); };
+$('#filterChips').onclick = e => { const b=e.target.closest('[data-filter]'); if(!b) return; const f=b.dataset.filter; S.filters.has(f)?S.filters.delete(f):S.filters.add(f); renderMenuControls(); renderMenu(); };
+$('#search').oninput = e => { S.search = e.target.value; renderMenu(); };
+$('#sort').onchange = e => { S.sort = e.target.value; renderMenu(); };
+$('#catTabs').onclick = e => { const b=e.target.closest('[data-cat]'); if(!b) return; S.cat=b.dataset.cat; renderMenu(); };
+$('#menuGrid').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const id = b.dataset.id, act = b.dataset.act, d = findDish(id);
+  if(act==='open') return openDish(id);
+  if(act==='add'){ if(addToCart(d)) toast(t('added',{n:d.name[S.lang]})); }
+  if(act==='inc') addToCart(d);
+  if(act==='dec') changeQty(id,-1);
+  renderHeader(); renderMenu(); refocus(act,id);
+});
+$('#cartBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-cact]');
+  if(b){ const id=b.dataset.id; if(b.dataset.cact==='inc') S.cart.items[id].qty++; if(b.dataset.cact==='dec') changeQty(id,-1); if(b.dataset.cact==='rm'){ delete S.cart.items[id]; if(!cartCount()){S.cart.key=null;S.slot='';} }
+    S.cartError=''; renderCart(); renderHeader(); renderMenu(); return; }
+  const s = e.target.closest('[data-slot]'); if(s && !s.disabled){ S.slot = s.dataset.slot; S.cartError=''; renderCart(); }
+});
+$('#cartBody').addEventListener('change', e => {
+  if(e.target.name==='pickup'){ S.pickup=e.target.value; S.slot=''; S.cartError=''; renderCart(); }
+  if(e.target.id==='slotSel'){ S.slot=e.target.value; S.cartError=''; renderCart(); }
+});
+$('#cartBody').addEventListener('input', e => { if(e.target.id==='cmt') S.comment = e.target.value; });
+$('#cartFoot').addEventListener('change', e => { if(e.target.name==='pm'){ S.payMethod=e.target.value; S.cartError=''; renderCart(); } });
+$('#cartFoot').addEventListener('click', e => { if(e.target.closest('#checkoutBtn')) checkout(); });
+
+/* =========================================================
+   СТАРТ
+   ========================================================= */
+$('#logoSlot').innerHTML = logoSVG(40);
+document.getElementById('favicon').href = 'data:image/svg+xml,' + encodeURIComponent(logoSVG(32).replace(' role="img" aria-label="Логотип"',''));
+renderAll();
+initMap();
+setInterval(() => { renderHero(); renderSchedule(); renderPlaces(); renderDelivery(); }, 60000);
+</script>
+</body>
+</html>
